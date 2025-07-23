@@ -141,7 +141,6 @@ public class UserControllerTests {
         Exception e = assertThrows(ValidationException.class,
                 () -> {userController.updateUser(userForUpdate.getId() + 8, userForUpdate);});
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
-        userController.updateUser(userForUpdate.getId(), userForUpdate);
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
 
