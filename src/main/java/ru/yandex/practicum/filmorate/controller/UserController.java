@@ -46,6 +46,9 @@ public class UserController {
         return user;
     }
 
+/*
+СДЕЛАЛ РЕАЛИЗАЦИЮ ПО PATH ПАРАМЕТРУ, НО НЕ ПРОШЛА ТЕСТЫ
+ОСТАВЛЮ НА БУДУЩЕЕ
     @PutMapping("/{id}")
     public User updateUser(@PathVariable int id, @Valid @RequestBody User user) {
         if (id <= 0) {
@@ -54,6 +57,25 @@ public class UserController {
 
         if (id != user.getId()) {
             logError("Не совпадает id в теле сообщения");
+        }
+
+        if (user.getLogin().contains(" ")) {
+            logError("Логин не должен содержать пробелы");
+        }
+
+        if (user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
+        users.put(user.getId(), user);
+        return user;
+    }
+*/
+
+    @PutMapping
+    public User updateUser(@Valid @RequestBody User user) {
+        if (user.getId() <= 0) {
+            logError("Id должен быть положительным числом");
         }
 
         if (user.getLogin().contains(" ")) {

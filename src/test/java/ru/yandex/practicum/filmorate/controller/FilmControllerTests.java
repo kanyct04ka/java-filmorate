@@ -87,6 +87,9 @@ class FilmControllerTests {
         assertEquals(0, filmController.getAllFilms().size());
     }
 
+/*
+ТЕСТЫ ПОД РЕАЛИЗАЦИЮ ЧЕРЕЗ PATH ПАРАМЕТР
+
     @Test
     void updateFilm_Success() {
         Film filmForUpload = Film.builder()
@@ -167,6 +170,64 @@ class FilmControllerTests {
             filmController.updateFilm(filmForUpdate.getId() + 8, filmForUpdate);
         });
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
+
+        List<Film> list = new ArrayList<>(filmController.getAllFilms());
+
+        assertEquals(1, list.size());
+        assertEquals(1, list.get(0).getId());
+        assertEquals(filmForUpload.getName(), list.get(0).getName());
+    }
+*/
+
+    @Test
+    void updateFilm_Success() {
+        Film filmForUpload = Film.builder()
+                .name("film name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+        filmController.createFilm(filmForUpload);
+
+        Film filmForUpdate = Film.builder()
+                .id(filmForUpload.getId())
+                .name("new name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+        filmController.updateFilm(filmForUpdate);
+
+        List<Film> list = new ArrayList<>(filmController.getAllFilms());
+
+        assertEquals(1, list.size());
+        assertEquals(1, list.get(0).getId());
+        assertEquals(filmForUpdate.getName(), list.get(0).getName());
+    }
+
+    @Test
+    void updateFilm_NegativeId() {
+        Film filmForUpload = Film.builder()
+                .name("film name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+        filmController.createFilm(filmForUpload);
+
+        Film filmForUpdate = Film.builder()
+                .id(filmForUpload.getId() * -1)
+                .name("new name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+
+        Exception e = assertThrows(ValidationException.class,
+                () -> {
+                    filmController.updateFilm(filmForUpdate);
+                });
+        assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
 

@@ -51,6 +51,9 @@ public class FilmController {
         log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
         return film;
     }
+/*
+СДЕЛАЛ РЕАЛИЗАЦИЮ ПО PATH ПАРАМЕТРУ, НО НЕ ПРОШЛА ТЕСТЫ
+ОСТАВЛЮ НА БУДУЩЕЕ
 
     @PutMapping("/{id}")
     public Film updateFilm(@PathVariable int id, @Valid @RequestBody Film film) {
@@ -73,6 +76,27 @@ public class FilmController {
         }
 
         films.put(id, film);
+        log.info("Фильм с ид={} обновлен", film.getId());
+        return film;
+    }
+*/
+    @PutMapping
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        if (film.getId() <= 0) {
+            logError("Id должен быть положительным числом");
+        }
+
+        if (film.getReleaseDate() != null
+                && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            logError("Дата релиза не может быть раньше 28 декабря 1895 года");
+        }
+
+        if (film.getDuration() != null
+                && film.getDuration().toSeconds() <= 0) {
+            logError("Продолжительность фильма должна быть положительным числом");
+        }
+
+        films.put(film.getId(), film);
         log.info("Фильм с ид={} обновлен", film.getId());
         return film;
     }
