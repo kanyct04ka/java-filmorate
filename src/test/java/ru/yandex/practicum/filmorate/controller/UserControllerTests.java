@@ -110,7 +110,7 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {userController.updateUser(userForUpdate.getId(), userForUpdate);});
+                () -> { userController.updateUser(userForUpdate.getId(), userForUpdate); });
         assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
@@ -139,7 +139,7 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {userController.updateUser(userForUpdate.getId() + 8, userForUpdate);});
+                () -> { userController.updateUser(userForUpdate.getId() + 8, userForUpdate); });
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());

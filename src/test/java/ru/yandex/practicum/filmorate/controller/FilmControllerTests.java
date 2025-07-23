@@ -63,7 +63,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {filmController.createFilm(filmForUpload);});
+                () -> { filmController.createFilm(filmForUpload); });
         assertEquals("Дата релиза не может быть раньше 28 декабря 1895 года", e.getMessage());
         assertEquals(0, filmController.getAllFilms().size());
     }
@@ -78,7 +78,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {filmController.createFilm(filmForUpload);});
+                () -> { filmController.createFilm(filmForUpload); });
         assertEquals("Продолжительность фильма должна быть положительным числом", e.getMessage());
         assertEquals(0, filmController.getAllFilms().size());
     }
@@ -128,7 +128,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {filmController.updateFilm(filmForUpdate.getId(), filmForUpdate);});
+                () -> { filmController.updateFilm(filmForUpdate.getId(), filmForUpdate); });
         assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
@@ -157,7 +157,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {filmController.updateFilm(filmForUpdate.getId() + 8, filmForUpdate);});
+                () -> { filmController.updateFilm(filmForUpdate.getId() + 8, filmForUpdate); });
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
