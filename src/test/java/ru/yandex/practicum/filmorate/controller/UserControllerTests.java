@@ -215,4 +215,35 @@ public class UserControllerTests {
         assertEquals(userForUpload.getLogin(), list.get(0).getLogin());
     }
 
+    @Test
+    void updateUser_NoSuchUser() {
+        User userForUpload = User.builder()
+                .email("adress@domain.zone")
+                .login("vas01")
+                .name("vasya")
+                .birthday(LocalDate.of(1985, 01, 01))
+                .build();
+        userController.createUser(userForUpload);
+
+        User userForUpdate = User.builder()
+                .id(89)
+                .email("adress@domain.zone")
+                .login("vas01_updated")
+                .name("vasya")
+                .birthday(LocalDate.of(1985, 01, 01))
+                .build();
+
+        Exception e = assertThrows(ValidationException.class,
+                () -> {
+                    userController.updateUser(userForUpdate);
+                });
+        assertEquals("Попытка обновить не существующего юзера", e.getMessage());
+
+        List<User> list = new ArrayList<>(userController.getAllUsers());
+
+        assertEquals(1, list.size());
+        assertEquals(1, list.get(0).getId());
+        assertEquals(userForUpload.getLogin(), list.get(0).getLogin());
+    }
+
 }

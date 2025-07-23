@@ -78,6 +78,10 @@ public class UserController {
             logError("Id должен быть положительным числом");
         }
 
+        if (!users.containsKey(user.getId())) {
+            logError("Попытка обновить не существующего юзера");
+        }
+
         if (user.getLogin().contains(" ")) {
             logError("Логин не должен содержать пробелы");
         }

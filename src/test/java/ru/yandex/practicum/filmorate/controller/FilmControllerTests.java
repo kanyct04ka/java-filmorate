@@ -236,4 +236,35 @@ class FilmControllerTests {
         assertEquals(filmForUpload.getName(), list.get(0).getName());
     }
 
+    @Test
+    void updateFilm_NoSuchFilm() {
+        Film filmForUpload = Film.builder()
+                .name("film name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+        filmController.createFilm(filmForUpload);
+
+        Film filmForUpdate = Film.builder()
+                .id(89)
+                .name("new name")
+                .description("film desc")
+                .releaseDate(LocalDate.of(2023, 05,23))
+                .duration(Duration.ofMinutes(112L))
+                .build();
+
+        Exception e = assertThrows(ValidationException.class,
+                () -> {
+                    filmController.updateFilm(filmForUpdate);
+                });
+        assertEquals("Фильм не найден", e.getMessage());
+
+        List<Film> list = new ArrayList<>(filmController.getAllFilms());
+
+        assertEquals(1, list.size());
+        assertEquals(1, list.get(0).getId());
+        assertEquals(filmForUpload.getName(), list.get(0).getName());
+    }
+
 }

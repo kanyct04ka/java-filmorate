@@ -86,6 +86,10 @@ public class FilmController {
             logError("Id должен быть положительным числом");
         }
 
+        if (!films.containsKey(film.getId())) {
+            logError("Фильм не найден");
+        }
+
         if (film.getReleaseDate() != null
                 && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logError("Дата релиза не может быть раньше 28 декабря 1895 года");
