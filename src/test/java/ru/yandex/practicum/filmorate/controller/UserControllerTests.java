@@ -59,8 +59,9 @@ public class UserControllerTests {
                 .birthday(LocalDate.of(1985, 01, 01))
                 .build();
         Exception e = assertThrows(ValidationException.class,
-                () -> {userController.createUser(user);});
-
+                () -> {
+            userController.createUser(user);
+        });
         assertEquals("Логин не должен содержать пробелы", e.getMessage());
         assertEquals(0, userController.getAllUsers().size());
     }
@@ -110,7 +111,9 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> { userController.updateUser(userForUpdate.getId(), userForUpdate); });
+                () -> {
+            userController.updateUser(userForUpdate.getId(), userForUpdate);
+        });
         assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
@@ -139,7 +142,9 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> { userController.updateUser(userForUpdate.getId() + 8, userForUpdate); });
+                () -> {
+            userController.updateUser(userForUpdate.getId() + 8, userForUpdate);
+        });
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
