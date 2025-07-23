@@ -157,7 +157,9 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> { filmController.updateFilm(filmForUpdate.getId() + 8, filmForUpdate); });
+                () -> {
+            filmController.updateFilm(filmForUpdate.getId() + 8, filmForUpdate);
+        });
         assertEquals("Не совпадает id в теле сообщения", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
