@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.serializator.DurationSerializator;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -19,5 +21,6 @@ public class Film {
     @Size(max = 200) // максимальная длина описания — 200 символов
     String description;
     LocalDate releaseDate;
+    @JsonSerialize(using = DurationSerializator.class)
     Duration duration;
 }
