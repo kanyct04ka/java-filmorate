@@ -38,6 +38,11 @@ public class UserController {
             logError("Логин не должен содержать пробелы");
         }
 
+        if (user.getName() == null
+                || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
         user.setId(getNextId());
         users.put(user.getId(), user);
         return user;
@@ -84,6 +89,11 @@ public class UserController {
 
         if (user.getLogin().contains(" ")) {
             logError("Логин не должен содержать пробелы");
+        }
+
+        if (user.getName() == null
+                || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
 
         users.put(user.getId(), user);
