@@ -37,10 +37,6 @@ public class UserController {
         if (user.getLogin().contains(" ")) {
             logError("Логин не должен содержать пробелы");
         }
-//        имя для отображения может быть пустым — в таком случае будет использован логин
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
 
         user.setId(getNextId());
         users.put(user.getId(), user);
