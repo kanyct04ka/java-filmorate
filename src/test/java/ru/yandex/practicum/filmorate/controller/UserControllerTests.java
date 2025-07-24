@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -233,7 +234,7 @@ public class UserControllerTests {
                 .birthday(LocalDate.of(1985, 01, 01))
                 .build();
 
-        Exception e = assertThrows(ValidationException.class,
+        Exception e = assertThrows(NotFoundIssueException.class,
                 () -> {
                     userController.updateUser(userForUpdate);
                 });

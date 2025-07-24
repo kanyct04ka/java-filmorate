@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -74,12 +75,15 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
+
         if (user.getId() <= 0) {
             logError("Id должен быть положительным числом");
         }
 
         if (!users.containsKey(user.getId())) {
-            logError("Попытка обновить не существующего юзера");
+            String message = "Попытка обновить не существующего юзера";
+            log.error(message);
+            throw new NotFoundIssueException(message);
         }
 
         if (user.getLogin().contains(" ")) {

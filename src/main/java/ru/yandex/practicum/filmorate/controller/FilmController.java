@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -82,12 +83,15 @@ public class FilmController {
 */
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
+
         if (film.getId() <= 0) {
             logError("Id должен быть положительным числом");
         }
 
         if (!films.containsKey(film.getId())) {
-            logError("Фильм не найден");
+            String message = "Фильм не найден";
+            log.error(message);
+            throw new NotFoundIssueException(message);
         }
 
         if (film.getReleaseDate() != null

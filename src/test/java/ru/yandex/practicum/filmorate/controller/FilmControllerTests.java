@@ -4,6 +4,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
@@ -254,7 +255,7 @@ class FilmControllerTests {
                 .duration(Duration.ofMinutes(112L))
                 .build();
 
-        Exception e = assertThrows(ValidationException.class,
+        Exception e = assertThrows(NotFoundIssueException.class,
                 () -> {
                     filmController.updateFilm(filmForUpdate);
                 });
