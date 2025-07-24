@@ -90,10 +90,6 @@ public class UserController {
             logError("Логин не должен содержать пробелы");
         }
 
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
         users.put(user.getId(), user);
         return user;
     }
