@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
@@ -26,6 +26,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("✅ Успешное создание фильма ")
     void createFilm_Success() {
         Film filmForUpload = Film.builder()
                 .name("film name")
@@ -39,6 +40,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("✅ Успешное создание нескольких фильмов")
     void createFilm_SuccessSomeFilms() {
         int x = 3;
         for (int i = 1; i <= x; i++) {
@@ -55,6 +57,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("🛑 Не возможно создать фильм с очень старой датой")
     void createFilm_VeryOldReleaseDate() {
         Film filmForUpload = Film.builder()
                 .name("film name")
@@ -72,6 +75,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("🛑 Не возмжно создать фильм с отрицательной длительностью")
     void createFilm_NegativeDuration() {
         Film filmForUpload = Film.builder()
                 .name("film name")
@@ -181,6 +185,7 @@ class FilmControllerTests {
 */
 
     @Test
+    @DisplayName("✅ Успешное обновление фильма ")
     void updateFilm_Success() {
         Film filmForUpload = Film.builder()
                 .name("film name")
@@ -207,6 +212,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("🛑 Попытка обновить фильм с отрицательным ид")
     void updateFilm_NegativeId() {
         Film filmForUpload = Film.builder()
                 .name("film name")
@@ -238,6 +244,7 @@ class FilmControllerTests {
     }
 
     @Test
+    @DisplayName("❌ Фильм с указанным ид не найден")
     void updateFilm_NoSuchFilm() {
         Film filmForUpload = Film.builder()
                 .name("film name")

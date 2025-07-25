@@ -14,13 +14,13 @@ import java.time.LocalDate;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class User {
 
-        int id;
+        private int id;
         @NotBlank  //электронная почта не может быть пустой
         @Email     //и должна содержать символ @
-        String email;
+        private String email;
         @NotBlank  //логин не может быть пустым
-        String login;
-        String name;
+        private String login;
+        private String name;
         @Past   //дата рождения не может быть в будущем
-        LocalDate birthday;
+        private LocalDate birthday;
 }

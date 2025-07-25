@@ -17,10 +17,10 @@ public class Film {
 
     int id;
     @NotBlank // название не может быть пустым
-    String name;
+    private String name;
     @Size(max = 200) // максимальная длина описания — 200 символов
-    String description;
-    LocalDate releaseDate;
+    private String description;
+    private LocalDate releaseDate;
     @JsonSerialize(using = DurationSerializator.class)
-    Duration duration;
+    private Duration duration;
 }
