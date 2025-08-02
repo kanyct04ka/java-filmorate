@@ -86,19 +86,19 @@ public class UserController {
         throw new NotFoundIssueException(message);
     }
 
-    @PutMapping("/{id}/friends/{friend_id}")
-    public void addFriend(@PathVariable int id, @PathVariable int friend_id) {
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка добавить друга для не существующего юзера");
         }
 
-        if (userStorage.getUser(friend_id).isEmpty()) {
+        if (userStorage.getUser(friendId).isEmpty()) {
             logNotFoundError("Попытка добавить в качестве друга не существующего юзера");
         }
 
         userService.createRelation(
                 userStorage.getUser(id).get(),
-                userStorage.getUser(friend_id).get()
+                userStorage.getUser(friendId).get()
         );
     }
 
@@ -117,29 +117,29 @@ public class UserController {
                 .toList();
     }
 
-    @DeleteMapping("/{id}/friends/{friend_id}")
-    public void deleteFriend(@PathVariable int id, @PathVariable int friend_id) {
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка удалить друга для не существующего юзера");
         }
 
-        if (userStorage.getUser(friend_id).isEmpty()) {
+        if (userStorage.getUser(friendId).isEmpty()) {
             logNotFoundError("Попытка удалить в качестве друга не существующего юзера");
         }
 
         userService.deleteRelation(
                 userStorage.getUser(id).get(),
-                userStorage.getUser(friend_id).get()
+                userStorage.getUser(friendId).get()
         );
     }
 
-    @GetMapping("/{id}/friends/common/{friend_id}")
-    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int friend_id) {
+    @GetMapping("/{id}/friends/common/{friendId}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int friendId) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка проверки для не существующего юзера");
         }
 
-        if (userStorage.getUser(friend_id).isEmpty()) {
+        if (userStorage.getUser(friendId).isEmpty()) {
             logNotFoundError("Попытка проверки в качестве друга не существующего юзера");
         }
 
@@ -147,7 +147,7 @@ public class UserController {
                 .get()
                 .getFriends()
                 .stream()
-                .filter(i -> userStorage.getUser(friend_id).get().getFriends().contains(i))
+                .filter(i -> userStorage.getUser(friendId).get().getFriends().contains(i))
                 .map(i -> userStorage.getUser(i).get())
                 .toList();
     }
