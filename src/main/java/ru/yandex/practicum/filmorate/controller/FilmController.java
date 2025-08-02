@@ -113,19 +113,19 @@ public class FilmController {
         );
     }
 
-    @DeleteMapping("/{id}/like/{user_id}")
-    public void removeLike(@PathVariable int id, @PathVariable int user_id) {
+    @DeleteMapping("/{id}/like/{userId}")
+    public void removeLike(@PathVariable int id, @PathVariable int userId) {
         if (filmStorage.getFilm(id).isEmpty()) {
             logNotFoundError("Фильм не найден");
         }
 
-        if (userStorage.getUser(user_id).isEmpty()) {
+        if (userStorage.getUser(userId).isEmpty()) {
             logNotFoundError("Юзер не найден");
         }
 
         filmService.removeLike(
                 filmStorage.getFilm(id).get(),
-                userStorage.getUser(user_id).get()
+                userStorage.getUser(userId).get()
         );
     }
 
