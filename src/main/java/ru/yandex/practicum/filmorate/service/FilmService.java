@@ -34,7 +34,7 @@ public class FilmService {
                 .stream()
                 // сортируем по убыванию количества лайков
                 .sorted((one, two) -> Integer.compare(two.getWhoLikes().size(), one.getWhoLikes().size()))
-                .limit((long) quantity)
+                .limit(quantity)
                 .collect(Collectors.toList());
     }
 }

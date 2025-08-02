@@ -76,9 +76,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {
-            filmController.createFilm(filmForUpload);
-        });
+                () -> filmController.createFilm(filmForUpload));
         assertEquals("Дата релиза не может быть раньше 28 декабря 1895 года", e.getMessage());
         assertEquals(0, filmController.getAllFilms().size());
     }
@@ -94,9 +92,7 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {
-            filmController.createFilm(filmForUpload);
-        });
+                () -> filmController.createFilm(filmForUpload));
         assertEquals("Продолжительность фильма должна быть положительным числом", e.getMessage());
         assertEquals(0, filmController.getAllFilms().size());
     }
@@ -216,8 +212,8 @@ class FilmControllerTests {
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(filmForUpdate.getName(), list.get(0).getName());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(filmForUpdate.getName(), list.getFirst().getName());
     }
 
     @Test
@@ -240,16 +236,14 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {
-                    filmController.updateFilm(filmForUpdate);
-                });
+                () -> filmController.updateFilm(filmForUpdate));
         assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(filmForUpload.getName(), list.get(0).getName());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(filmForUpload.getName(), list.getFirst().getName());
     }
 
     @Test
@@ -272,16 +266,14 @@ class FilmControllerTests {
                 .build();
 
         Exception e = assertThrows(NotFoundIssueException.class,
-                () -> {
-                    filmController.updateFilm(filmForUpdate);
-                });
+                () -> filmController.updateFilm(filmForUpdate));
         assertEquals("Фильм не найден", e.getMessage());
 
         List<Film> list = new ArrayList<>(filmController.getAllFilms());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(filmForUpload.getName(), list.get(0).getName());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(filmForUpload.getName(), list.getFirst().getName());
     }
 
 }
