@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -87,7 +90,14 @@ public class UserController {
     }
 
     @PutMapping("/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+    public void addFriend(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id,
+            @PathVariable
+            @Positive(message = "friend_id должен быть целым числом больше 0")
+            int friendId
+    ) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка добавить друга для не существующего юзера");
         }
@@ -103,7 +113,11 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getUserFriends(@PathVariable int id) {
+    public List<User> getUserFriends(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка запроса списка друзей не существующего юзера");
         }
@@ -118,7 +132,14 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+    public void deleteFriend(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id,
+            @PathVariable
+            @Positive(message = "friend_id должен быть целым числом больше 0")
+            int friendId
+    ) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка удалить друга для не существующего юзера");
         }
@@ -134,7 +155,14 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends/common/{friendId}")
-    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int friendId) {
+    public List<User> getCommonFriends(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id,
+            @PathVariable
+            @Positive(message = "friend_id должен быть целым числом больше 0")
+            int friendId
+    ) {
         if (userStorage.getUser(id).isEmpty()) {
             logNotFoundError("Попытка проверки для не существующего юзера");
         }

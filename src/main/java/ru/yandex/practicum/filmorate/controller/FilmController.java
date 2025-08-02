@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
@@ -19,6 +21,7 @@ import java.util.List;
 
 
 @Slf4j
+@Validated
 @RestController
 @RequestMapping("/films")
 public class FilmController {
@@ -98,7 +101,14 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable int id, @PathVariable int userId) {
+    public void addLike(
+            @PathVariable
+            @Positive(message = "film_id должен быть целым числом больше 0")
+            int id,
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int userId
+    ) {
         if (filmStorage.getFilm(id).isEmpty()) {
             logNotFoundError("Фильм не найден");
         }
@@ -114,7 +124,14 @@ public class FilmController {
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable int id, @PathVariable int userId) {
+    public void removeLike(
+            @PathVariable
+            @Positive(message = "film_id должен быть целым числом больше 0")
+            int id,
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int userId
+    ) {
         if (filmStorage.getFilm(id).isEmpty()) {
             logNotFoundError("Фильм не найден");
         }
@@ -130,10 +147,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilms(@RequestParam int count) {
-        if (count < 0) {
-            logValidationError("Количество должно быть больше 0");
-        }
+    public List<Film> getPopularFilms(
+            @RequestParam
+            @Positive(message = "Количество должно быть целым числом больше 0")
+            int count) {
         if (count == 0) {
             count = 10;
         }

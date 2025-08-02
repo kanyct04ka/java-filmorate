@@ -17,7 +17,7 @@ import java.util.Set;
 @Builder
 public class Film {
 
-    int id;
+    private int id;
 
     @NotBlank // название не может быть пустым
     private String name;
