@@ -97,19 +97,19 @@ public class FilmController {
         throw new NotFoundIssueException(message);
     }
 
-    @PutMapping("/{id}/like/{user_id}")
-    public void addLike(@PathVariable int id, @PathVariable int user_id) {
+    @PutMapping("/{id}/like/{userId}")
+    public void addLike(@PathVariable int id, @PathVariable int userId) {
         if (filmStorage.getFilm(id).isEmpty()) {
             logNotFoundError("Фильм не найден");
         }
 
-        if (userStorage.getUser(user_id).isEmpty()) {
+        if (userStorage.getUser(userId).isEmpty()) {
             logNotFoundError("Юзер не найден");
         }
 
         filmService.addLike(
                 filmStorage.getFilm(id).get(),
-                userStorage.getUser(user_id).get()
+                userStorage.getUser(userId).get()
         );
     }
 
