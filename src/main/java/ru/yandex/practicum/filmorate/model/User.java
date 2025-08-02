@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Builder
@@ -15,12 +17,18 @@ import java.time.LocalDate;
 public class User {
 
         private int id;
+
         @NotBlank  //электронная почта не может быть пустой
         @Email     //и должна содержать символ @
         private String email;
+
         @NotBlank  //логин не может быть пустым
         private String login;
+
         private String name;
+
         @Past   //дата рождения не может быть в будущем
         private LocalDate birthday;
+
+        private final Set<Integer> friends = new HashSet<>();
 }

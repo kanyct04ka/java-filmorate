@@ -1,36 +1,45 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
-    private final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private final FilmStorage filmStorage;
+    private final FilmService filmService;
+    private final UserStorage userStorage;
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int counter = 0;
-
-    private int getNextId() {
-        return ++counter;
+    @Autowired
+    public FilmController(FilmStorage filmStorage,
+                          FilmService filmService,
+                          UserStorage userStorage
+    ) {
+        this.filmStorage = filmStorage;
+        this.filmService = filmService;
+        this.userStorage = userStorage;
     }
 
     @GetMapping
     public Collection<Film> getAllFilms() {
-        return films.values();
+        return filmStorage.getAllFilms();
     }
 
     @PostMapping
@@ -38,80 +47,98 @@ public class FilmController {
 
         if (film.getReleaseDate() != null
                 && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            logError("Дата релиза не может быть раньше 28 декабря 1895 года");
+            logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
 
         }
 
         if (film.getDuration() != null
                 && film.getDuration().toSeconds() <= 0) {
-            logError("Продолжительность фильма должна быть положительным числом");
+            logValidationError("Продолжительность фильма должна быть положительным числом");
         }
 
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
-        return film;
+        var addedFilm = filmStorage.addFilm(film);
+        log.info("Фильм {} добавлен с ид={}", addedFilm.getName(), addedFilm.getId());
+        return addedFilm;
     }
-/*
-СДЕЛАЛ РЕАЛИЗАЦИЮ ПО PATH ПАРАМЕТРУ, НО НЕ ПРОШЛА ТЕСТЫ
-ОСТАВЛЮ НА БУДУЩЕЕ
 
-    @PutMapping("/{id}")
-    public Film updateFilm(@PathVariable int id, @Valid @RequestBody Film film) {
-        if (id <= 0) {
-            logError("Id должен быть положительным числом");
-        }
-
-        if (id != film.getId()) {
-            logError("Не совпадает id в теле сообщения");
-        }
-
-        if (film.getReleaseDate() != null
-                && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            logError("Дата релиза не может быть раньше 28 декабря 1895 года");
-        }
-
-        if (film.getDuration() != null
-                && film.getDuration().toSeconds() <= 0) {
-            logError("Продолжительность фильма должна быть положительным числом");
-        }
-
-        films.put(id, film);
-        log.info("Фильм с ид={} обновлен", film.getId());
-        return film;
-    }
-*/
     @PutMapping
     public Film updateFilm(@Valid @RequestBody Film film) {
 
         if (film.getId() <= 0) {
-            logError("Id должен быть положительным числом");
+            logValidationError("Id должен быть положительным числом");
         }
 
-        if (!films.containsKey(film.getId())) {
-            String message = "Фильм не найден";
-            log.error(message);
-            throw new NotFoundIssueException(message);
+        if (filmStorage.getFilm(film.getId()).isEmpty()) {
+            logNotFoundError("Фильм не найден");
         }
 
         if (film.getReleaseDate() != null
                 && film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            logError("Дата релиза не может быть раньше 28 декабря 1895 года");
+            logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
 
         if (film.getDuration() != null
                 && film.getDuration().toSeconds() <= 0) {
-            logError("Продолжительность фильма должна быть положительным числом");
+            logValidationError("Продолжительность фильма должна быть положительным числом");
         }
 
-        films.put(film.getId(), film);
+        filmStorage.updateFilm(film);
         log.info("Фильм с ид={} обновлен", film.getId());
         return film;
     }
 
-    private void logError(String message) {
+    private void logValidationError(String message) {
         log.error(message);
         throw new ValidationException(message);
+    }
+
+    private void logNotFoundError(String message) {
+        log.error(message);
+        throw new NotFoundIssueException(message);
+    }
+
+    @PutMapping("/{id}/like/{user_id}")
+    public void addLike(@PathVariable int id, @PathVariable int user_id) {
+        if (filmStorage.getFilm(id).isEmpty()) {
+            logNotFoundError("Фильм не найден");
+        }
+
+        if (userStorage.getUser(user_id).isEmpty()) {
+            logNotFoundError("Юзер не найден");
+        }
+
+        filmService.addLike(
+                filmStorage.getFilm(id).get(),
+                userStorage.getUser(user_id).get()
+        );
+    }
+
+    @DeleteMapping("/{id}/like/{user_id}")
+    public void removeLike(@PathVariable int id, @PathVariable int user_id) {
+        if (filmStorage.getFilm(id).isEmpty()) {
+            logNotFoundError("Фильм не найден");
+        }
+
+        if (userStorage.getUser(user_id).isEmpty()) {
+            logNotFoundError("Юзер не найден");
+        }
+
+        filmService.removeLike(
+                filmStorage.getFilm(id).get(),
+                userStorage.getUser(user_id).get()
+        );
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilms(@RequestParam int count) {
+        if (count < 0) {
+            logValidationError("Количество должно быть больше 0");
+        }
+        if (count == 0) {
+            count = 10;
+        }
+
+        return filmService.getTopLikedFilms(count);
     }
 
 }

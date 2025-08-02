@@ -1,41 +1,45 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.*;
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
-    private final Logger log = LoggerFactory.getLogger(UserController.class);
+    private final UserStorage userStorage;
+    private final UserService userService;
 
-    private final Map<Integer, User> users = new HashMap<>();
-    private int counter = 0;
-
-    private int getNextId() {
-        return ++counter;
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        return users.values();
+        return userStorage.getAllUsers();
     }
 
     @PostMapping
     public User createUser(@Valid @RequestBody User user) {
         if (user.getLogin().contains(" ")) {
-            logError("Логин не должен содержать пробелы");
+            logValidationError("Логин не должен содержать пробелы");
         }
 
         if (user.getName() == null
@@ -43,52 +47,24 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        return user;
+        var addedUser = userStorage.addUser(user);
+        log.info("Пользователь с емейлом={} добавлен под ид={}", addedUser.getEmail(), addedUser.getId());
+        return addedUser;
     }
-
-/*
-СДЕЛАЛ РЕАЛИЗАЦИЮ ПО PATH ПАРАМЕТРУ, НО НЕ ПРОШЛА ТЕСТЫ
-ОСТАВЛЮ НА БУДУЩЕЕ
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable int id, @Valid @RequestBody User user) {
-        if (id <= 0) {
-            logError("Id должен быть положительным числом");
-        }
-
-        if (id != user.getId()) {
-            logError("Не совпадает id в теле сообщения");
-        }
-
-        if (user.getLogin().contains(" ")) {
-            logError("Логин не должен содержать пробелы");
-        }
-
-        if (user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
-        users.put(user.getId(), user);
-        return user;
-    }
-*/
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
 
         if (user.getId() <= 0) {
-            logError("Id должен быть положительным числом");
+            logValidationError("Id должен быть положительным числом");
         }
 
-        if (!users.containsKey(user.getId())) {
-            String message = "Попытка обновить не существующего юзера";
-            log.error(message);
-            throw new NotFoundIssueException(message);
+        if (userStorage.getUser(user.getId()).isEmpty()) {
+            logNotFoundError("Попытка обновить не существующего юзера");
         }
 
         if (user.getLogin().contains(" ")) {
-            logError("Логин не должен содержать пробелы");
+            logValidationError("Логин не должен содержать пробелы");
         }
 
         if (user.getName() == null
@@ -96,12 +72,84 @@ public class UserController {
             user.setName(user.getLogin());
         }
 
-        users.put(user.getId(), user);
+        userStorage.updateUser(user);
+        log.info("Пользователь с ид={} обновлен", user.getId());
         return user;
     }
 
-    private void logError(String message) {
+    private void logValidationError(String message) {
         log.error(message);
         throw new ValidationException(message);
+    }
+
+    private void logNotFoundError(String message) {
+        log.error(message);
+        throw new NotFoundIssueException(message);
+    }
+
+    @PutMapping("/{id}/friends/{friend_id}")
+    public void addFriend(@PathVariable int id, @PathVariable int friend_id) {
+        if (userStorage.getUser(id).isEmpty()) {
+            logNotFoundError("Попытка добавить друга для не существующего юзера");
+        }
+
+        if (userStorage.getUser(friend_id).isEmpty()) {
+            logNotFoundError("Попытка добавить в качестве друга не существующего юзера");
+        }
+
+        userService.createRelation(
+                userStorage.getUser(id).get(),
+                userStorage.getUser(friend_id).get()
+        );
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getUserFriends(@PathVariable int id) {
+        if (userStorage.getUser(id).isEmpty()) {
+            logNotFoundError("Попытка запроса списка друзей не существующего юзера");
+        }
+
+        return userStorage.getUser(id)
+                .get()
+                .getFriends()
+                .stream()
+                .map(userStorage::getUser)
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
+    @DeleteMapping("/{id}/friends/{friend_id}")
+    public void deleteFriend(@PathVariable int id, @PathVariable int friend_id) {
+        if (userStorage.getUser(id).isEmpty()) {
+            logNotFoundError("Попытка удалить друга для не существующего юзера");
+        }
+
+        if (userStorage.getUser(friend_id).isEmpty()) {
+            logNotFoundError("Попытка удалить в качестве друга не существующего юзера");
+        }
+
+        userService.deleteRelation(
+                userStorage.getUser(id).get(),
+                userStorage.getUser(friend_id).get()
+        );
+    }
+
+    @GetMapping("/{id}/friends/common/{friend_id}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int friend_id) {
+        if (userStorage.getUser(id).isEmpty()) {
+            logNotFoundError("Попытка проверки для не существующего юзера");
+        }
+
+        if (userStorage.getUser(friend_id).isEmpty()) {
+            logNotFoundError("Попытка проверки в качестве друга не существующего юзера");
+        }
+
+        return userStorage.getUser(id)
+                .get()
+                .getFriends()
+                .stream()
+                .filter(i -> userStorage.getUser(friend_id).get().getFriends().contains(i))
+                .map(i -> userStorage.getUser(i).get())
+                .toList();
     }
 }

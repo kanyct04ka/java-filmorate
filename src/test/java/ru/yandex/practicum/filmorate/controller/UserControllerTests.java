@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,9 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class UserControllerTests {
     private UserController userController;
 
+
     @BeforeEach
     void prepareUserController() {
-        userController = new UserController();
+        var userStorage = new InMemoryUserStorage();
+
+        userController = new UserController(
+                userStorage,
+                new UserService(userStorage)
+        );
     }
 
     @Test
