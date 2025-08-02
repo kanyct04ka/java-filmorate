@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,9 +20,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class UserControllerTests {
     private UserController userController;
 
+
     @BeforeEach
     void prepareUserController() {
-        userController = new UserController();
+        var userStorage = new InMemoryUserStorage();
+
+        userController = new UserController(
+                userStorage,
+                new UserService(userStorage)
+        );
     }
 
     @Test
@@ -60,9 +68,7 @@ public class UserControllerTests {
                 .birthday(LocalDate.of(1985, 01, 01))
                 .build();
         Exception e = assertThrows(ValidationException.class,
-                () -> {
-            userController.createUser(user);
-        });
+                () -> userController.createUser(user));
         assertEquals("Логин не должен содержать пробелы", e.getMessage());
         assertEquals(0, userController.getAllUsers().size());
     }
@@ -181,8 +187,8 @@ public class UserControllerTests {
         List<User> list = new ArrayList<>(userController.getAllUsers());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(userForUpdate.getLogin(), list.get(0).getLogin());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(userForUpdate.getLogin(), list.getFirst().getLogin());
     }
 
     @Test
@@ -204,16 +210,14 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(ValidationException.class,
-                () -> {
-                    userController.updateUser(userForUpdate);
-                });
+                () -> userController.updateUser(userForUpdate));
         assertEquals("Id должен быть положительным числом", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(userForUpload.getLogin(), list.get(0).getLogin());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(userForUpload.getLogin(), list.getFirst().getLogin());
     }
 
     @Test
@@ -235,16 +239,14 @@ public class UserControllerTests {
                 .build();
 
         Exception e = assertThrows(NotFoundIssueException.class,
-                () -> {
-                    userController.updateUser(userForUpdate);
-                });
+                () -> userController.updateUser(userForUpdate));
         assertEquals("Попытка обновить не существующего юзера", e.getMessage());
 
         List<User> list = new ArrayList<>(userController.getAllUsers());
 
         assertEquals(1, list.size());
-        assertEquals(1, list.get(0).getId());
-        assertEquals(userForUpload.getLogin(), list.get(0).getLogin());
+        assertEquals(1, list.getFirst().getId());
+        assertEquals(userForUpload.getLogin(), list.getFirst().getLogin());
     }
 
 }
