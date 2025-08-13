@@ -30,5 +30,5 @@ public class User {
         @Past   //дата рождения не может быть в будущем
         private LocalDate birthday;
 
-        private final Set<Integer> friends = new HashSet<>();
+        private final Set<UsersRelation> friends = new HashSet<>();
 }

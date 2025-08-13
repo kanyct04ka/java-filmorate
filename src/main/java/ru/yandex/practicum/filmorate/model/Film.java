@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.serializator.DurationSerializator;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -31,4 +32,8 @@ public class Film {
     private Duration duration;
 
     private final Set<Integer> whoLikes = new HashSet<>();
+
+    private List<Genre> genres;
+
+    private FilmRate rating;
 }
