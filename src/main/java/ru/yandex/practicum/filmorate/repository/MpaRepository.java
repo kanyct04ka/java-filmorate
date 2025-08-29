@@ -17,7 +17,7 @@ public class MpaRepository extends BaseRepository<Mpa> {
     }
 
     public List<Mpa> getAllMpa() {
-        String query = "select * from mpa";
+        String query = "select * from mpa order by id";
         return getRecords(query);
     }
 
