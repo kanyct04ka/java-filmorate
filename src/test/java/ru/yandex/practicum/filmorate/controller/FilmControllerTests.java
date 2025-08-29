@@ -1,24 +1,24 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.DisplayName;
+//import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.yandex.practicum.filmorate.api.controller.FilmController;
-import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-
-import java.time.Duration;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+//import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
+//import ru.yandex.practicum.filmorate.exception.ValidationException;
+//import ru.yandex.practicum.filmorate.model.Film;
+//import ru.yandex.practicum.filmorate.service.FilmService;
+//import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
+//import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+//
+//import java.time.Duration;
+//import java.time.LocalDate;
+//import java.util.ArrayList;
+//import java.util.List;
+//
+//import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class FilmControllerTests {
