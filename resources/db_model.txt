@@ -1,0 +1,49 @@
+Film as f
+----
+id PK int
+name varchar(255)
+description NULL varchar(2000)
+releaseDate NULL date
+duration NULL long
+mpa_id int FK >- Mpa.id
+
+Mpa as m
+----
+id PK int
+name UNIQUE varchar(50)
+
+Genre as g
+----
+id PK int
+name UNIQUE varchar(50)
+
+
+FilmGenre as fg
+----
+id PK int
+film_id int FK >- Film.id
+genre_id int FK >- Genre.id
+
+
+User as u
+----
+id PK int
+email varchar(100)
+login varchar(100)
+name NULL varchar(255)
+birthday date
+
+
+Friendship as ur
+----
+id PK int
+initiator int FK >- User.id
+respondent int FK >- User.id
+is_friend boolean
+
+
+Like as l
+----
+id PK long
+user_id int FK >- User.id
+film_id int FK >- Film.id
