@@ -12,7 +12,7 @@ import java.util.Optional;
 
 @Repository
 public class MpaRepository extends BaseRepository<Mpa> {
-    public MpaRepository (JdbcTemplate jdbc, RowMapper<Mpa> rowMapper) {
+    public MpaRepository(JdbcTemplate jdbc, RowMapper<Mpa> rowMapper) {
         super(jdbc, rowMapper);
     }
 

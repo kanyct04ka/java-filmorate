@@ -14,7 +14,7 @@ import java.util.Optional;
 @Repository
 public class UserRepository extends BaseRepository<User> {
 
-    public UserRepository (JdbcTemplate jdbc, RowMapper<User> rowMapper) {
+    public UserRepository(JdbcTemplate jdbc, RowMapper<User> rowMapper) {
         super(jdbc, rowMapper);
     }
 
