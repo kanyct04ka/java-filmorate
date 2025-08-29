@@ -18,7 +18,7 @@ public class MpaService {
     private final MpaRepository mpaRepository;
 
     @Autowired
-    public MpaService (MpaRepository mpaRepository) {
+    public MpaService(MpaRepository mpaRepository) {
         this.mpaRepository = mpaRepository;
     }
 
