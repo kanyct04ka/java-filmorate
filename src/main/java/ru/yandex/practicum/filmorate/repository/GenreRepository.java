@@ -17,7 +17,7 @@ public class GenreRepository extends BaseRepository<Genre> {
     }
 
     public List<Genre> getAllGenres() {
-        String query = "select * from genres";
+        String query = "select * from genres order by id";
         return getRecords(query);
     }
 
