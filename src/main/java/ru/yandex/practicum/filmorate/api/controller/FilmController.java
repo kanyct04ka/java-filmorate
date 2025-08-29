@@ -55,28 +55,28 @@ public class FilmController {
 
 
 
-    @PutMapping("/{film_id}/like/{user_id}")
+    @PutMapping("/{filmId}/like/{userId}")
     public void addLike(
             @PathVariable
             @Positive(message = "film_id должен быть целым числом больше 0")
-            int film_id,
+            int filmId,
             @PathVariable
             @Positive(message = "user_id должен быть целым числом больше 0")
-            int user_id
+            int userId
     ) {
-        filmService.addLike(film_id, user_id);
+        filmService.addLike(filmId, userId);
     }
 
-    @DeleteMapping("/{film_id}/like/{user_id}")
+    @DeleteMapping("/{filmId}/like/{userId}")
     public void removeLike(
             @PathVariable
             @Positive(message = "film_id должен быть целым числом больше 0")
-            int film_id,
+            int filmId,
             @PathVariable
             @Positive(message = "user_id должен быть целым числом больше 0")
-            int user_id
+            int userId
     ) {
-        filmService.removeLike(film_id, user_id);
+        filmService.removeLike(filmId, userId);
     }
 
     @GetMapping("/popular")
