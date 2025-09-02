@@ -94,14 +94,15 @@ public class FriendshipService {
             logNotFoundError("Юзера с ид " + userTwoId + " не существует");
         }
 
+        List<User> userTwoFriendsId = friendshipRepository.getFriendshipsByUserId(userTwoId)
+                .stream()
+                .map(Friendship::getFriend)
+                .toList();
+
         return friendshipRepository.getFriendshipsByUserId(userOneId)
                 .stream()
                 .map(Friendship::getFriend)
-                .filter(user -> friendshipRepository.getFriendshipsByUserId(userTwoId)
-                        .stream()
-                        .map(Friendship::getFriend)
-                        .toList()
-                        .contains(user))
+                .filter(userTwoFriendsId::contains)
                 .map(UserMapper::mapToUserDto)
                 .toList();
     }

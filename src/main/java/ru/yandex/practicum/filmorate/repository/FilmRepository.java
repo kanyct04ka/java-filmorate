@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,18 +54,29 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public List<Film> getAllFilms() {
-        String query = "select * from films";
+        String query = "select f.*, m.name as mpa_name"
+                + " from films f"
+                + " inner join mpa m on f.mpa_id = m.id";
         return getRecords(query);
     }
 
     public Optional<Film> getFilmById(int id) {
-        String query = "select * from films where id = ?";
+        String query = "select f.*, m.name as mpa_name"
+                + " from films f"
+                + " inner join mpa m on f.mpa_id = m.id"
+                + " where f.id = ?";
         return getRecord(query, id);
     }
 
-    public void linkGenreToFilm(int filmId, int genreId) {
-        String query = "insert into film_genres (film_id, genre_id) values (?, ?)";
-        jdbc.update(query, filmId, genreId);
+    public void linkGenresToFilm(Film film, List<Genre> genres) {
+        StringBuilder query = new StringBuilder("insert into film_genres (film_id, genre_id) values");
+        for (int i = 0; i < genres.size(); i++) {
+            query.append(" (%d, %d)".formatted(film.getId(), genres.get(i).getId()));
+            if (i + 1 != genres.size()) {
+                query.append(", ");
+            }
+        }
+        jdbc.update(query.toString());
     }
 
     public void deleteLinkedGenres(int filmId) {
@@ -73,7 +85,7 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public void addLike(int filmId, int userId) {
-        String query = "insert into likes (film_id, user_id) values (?, ?)";
+        String query = "insert into likes (film_id, user_id) values (?, ?) ";
         jdbc.update(query, filmId, userId);
     }
 
@@ -82,11 +94,15 @@ public class FilmRepository extends BaseRepository<Film> {
         jdbc.update(query, filmId, userId);
     }
 
-    public List<Integer> getTopLikedFilms(int count) {
-        String query = "select film_id from likes "
-                + "group by film_id "
-                + "order by count(user_id) desc "
-                + "limit ?";
-        return jdbc.queryForList(query, Integer.class, count);
+    public List<Film> getTopLikedFilms(int count) {
+        String query = "select f.*, m.name as mpa_name"
+                + " from films f"
+                + " inner join mpa m on f.mpa_id = m.id"
+                + " where f.id in (select film_id"
+                    + " from likes"
+                    + " group by film_id"
+                    + " order by count(user_id) desc"
+                    + " limit ?)";
+        return getRecords(query, count);
     }
 }

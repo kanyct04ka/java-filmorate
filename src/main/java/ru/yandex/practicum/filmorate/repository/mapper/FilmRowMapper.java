@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.GenreService;
 import ru.yandex.practicum.filmorate.service.MpaService;
 
@@ -15,12 +16,10 @@ import java.time.Duration;
 @Component
 public class FilmRowMapper implements RowMapper<Film> {
 
-    private final MpaService mpaService;
     private final GenreService genreService;
 
     @Autowired
-    public FilmRowMapper(MpaService mpaService, GenreService genreService) {
-        this.mpaService = mpaService;
+    public FilmRowMapper(GenreService genreService) {
         this.genreService = genreService;
     }
 
@@ -32,7 +31,10 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .description(resultSet.getString("description"))
                 .releaseDate(resultSet.getDate("release_date").toLocalDate())
                 .duration(Duration.ofSeconds(resultSet.getLong("duration")))
-                .mpa(mpaService.getMpaById(resultSet.getInt("mpa_id")))
+                .mpa(Mpa.builder()
+                        .id(resultSet.getInt("mpa_id"))
+                        .name(resultSet.getString("mpa_name"))
+                        .build())
                 .build();
 
         film.getGenres().addAll(genreService.getFilmGenres(film.getId()));

@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.repository.MpaRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -79,11 +80,12 @@ public class FilmService {
             logNotFoundError("Указан рейтинг, которого нет в базе");
         }
 
+        List<Genre> genres = genreRepository.getAllGenres();
+
         if (!filmRequest.getGenres()
                 .stream()
                 .map(Genre::getId)
-                .filter(i -> !genreRepository.getAllGenres()
-                        .stream()
+                .filter(i -> !genres.stream()
                         .map(Genre::getId)
                         .toList()
                         .contains(i))
@@ -93,9 +95,8 @@ public class FilmService {
         }
 
         Film film = filmRepository.addFilm(FilmMapper.mapToFilm(filmRequest));
-
-        for (Genre genre : filmRequest.getGenres()) {
-            filmRepository.linkGenreToFilm(film.getId(), genre.getId());
+        if (!filmRequest.getGenres().isEmpty()) {
+            filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
         }
 
         log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
@@ -121,8 +122,8 @@ public class FilmService {
 
         Film film = filmRepository.updateFilm(FilmMapper.mapToFilm(filmRequest));
         filmRepository.deleteLinkedGenres(film.getId());
-        for (Genre genre : filmRequest.getGenres()) {
-            filmRepository.linkGenreToFilm(film.getId(), genre.getId());
+        if (!filmRequest.getGenres().isEmpty()) {
+            filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
         }
 
         log.info("Фильм с ид={} обновлен", film.getId());
@@ -156,7 +157,7 @@ public class FilmService {
     public List<FilmDTO> getTopLikedFilms(int quantity) {
         return filmRepository.getTopLikedFilms(quantity)
                 .stream()
-                .map(this::getFilm)
+                .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
 
