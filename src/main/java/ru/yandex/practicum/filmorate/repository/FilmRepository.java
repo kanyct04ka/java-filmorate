@@ -97,12 +97,13 @@ public class FilmRepository extends BaseRepository<Film> {
     public List<Film> getTopLikedFilms(int count) {
         String query = "select f.*, m.name as mpa_name"
                 + " from films f"
-                + " inner join mpa m on f.mpa_id = m.id"
-                + " where f.id in (select film_id"
+                + " left join mpa m on f.mpa_id = m.id"
+                + " inner join (select film_id, count(user_id) as counter"
                     + " from likes"
                     + " group by film_id"
                     + " order by count(user_id) desc"
-                    + " limit ?)";
+                    + " limit ?) q on q.film_id = f.id"
+                    + " order by q.counter desc";
         return getRecords(query, count);
     }
 }
