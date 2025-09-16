@@ -13,12 +13,12 @@ import java.util.Set;
 @Builder
 public class Film {
 
-    private final Set<Genre> genres = new LinkedHashSet<>();
-    private final Set<Director> directors = new LinkedHashSet<>();
     private int id;
     private String name;
     private String description;
     private LocalDate releaseDate;
     private Duration duration;
     private Mpa mpa;
+    private final Set<Genre> genres = new LinkedHashSet<>();
+    private final Set<Director> directors = new LinkedHashSet<>();
 }
