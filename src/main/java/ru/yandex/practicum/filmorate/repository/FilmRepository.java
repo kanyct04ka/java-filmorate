@@ -157,7 +157,7 @@ public class FilmRepository extends BaseRepository<Film> {
                     " left join likes l on f.id = l.film_id" +
                     " where fd.director_id = ?" +
                     " group by f.id, m.name, f.release_date" +
-                    " order by count(l.user_id) DESC, f.release_date ASC";
+                    " order by like_count DESC, f.release_date ASC";
         } else {
             query = "select f.*, m.name as mpa_name" +
                     " from films f" +
