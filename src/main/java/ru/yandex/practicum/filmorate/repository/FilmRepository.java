@@ -172,11 +172,13 @@ public class FilmRepository extends BaseRepository<Film> {
                     " order by f.id";
         }
 
+        log.debug("Executing query: {} with params: {}", query, params);
+
         List<Film> films = getRecords(query, params);
 
-        List<Film> orderedFilms = new ArrayList<>(films);
+        log.debug("Films fetched from DB (before loading directors/genres): {}", films);
 
-        for (Film film : orderedFilms) {
+        for (Film film : films) {
             List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
             film.getDirectors().clear();
             film.getDirectors().addAll(directors);
@@ -185,10 +187,8 @@ public class FilmRepository extends BaseRepository<Film> {
             film.getGenres().addAll(genres);
         }
 
-        if ("year".equals(sortBy)) {
-            orderedFilms.sort(Comparator.comparing(Film::getReleaseDate));
-        }
+        log.debug("Films returned (after loading directors/genres): {}", films);
 
-        return orderedFilms;
+        return films;
     }
 }
