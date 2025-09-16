@@ -144,49 +144,49 @@ public class FilmRepository extends BaseRepository<Film> {
         String query;
         Object[] params = {directorId};
         if ("year".equals(sortBy)) {
-            query = "select f.*, m.name as mpa_name" +
-                    " from films f" +
-                    " inner join mpa m on f.mpa_id = m.id" +
-                    " inner join film_directors fd on f.id = fd.film_id" +
-                    " where fd.director_id = ?" +
-                    " order by f.release_date ASC";
+            query = "SELECT f.*, m.name as mpa_name " +
+                    "FROM films f " +
+                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
+                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "ORDER BY f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
-            query = "select f.*, m.name as mpa_name" +
-                    " from films f" +
-                    " inner join mpa m on f.mpa_id = m.id" +
-                    " inner join film_directors fd on f.id = fd.film_id" +
-                    " left join (" +
-                    "   select film_id, count(user_id) as like_count" +
-                    "   from likes" +
-                    "   group by film_id" +
-                    " ) lc on f.id = lc.film_id" +
-                    " where fd.director_id = ?" +
-                    " order by COALESCE(lc.like_count, 0) DESC, f.release_date DESC";
+            query = "SELECT f.*, m.name as mpa_name, COUNT(l.user_id) as like_count " +
+                    "FROM films f " +
+                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
+                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "LEFT JOIN likes l ON f.id = l.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "GROUP BY f.id, m.name " +
+                    "ORDER BY like_count DESC, f.release_date ASC";
         } else {
-            query = "select f.*, m.name as mpa_name" +
-                    " from films f" +
-                    " inner join mpa m on f.mpa_id = m.id" +
-                    " inner join film_directors fd on f.id = fd.film_id" +
-                    " where fd.director_id = ?" +
-                    " order by f.id";
+            query = "SELECT f.*, m.name as mpa_name " +
+                    "FROM films f " +
+                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
+                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "ORDER BY f.id";
         }
 
         List<Film> films = getRecords(query, params);
-        List<Film> orderedFilms = new ArrayList<>(films);
+        enrichFilmsWithDetails(films);
 
-        for (Film film : orderedFilms) {
-            List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
-            film.getDirectors().clear();
-            film.getDirectors().addAll(directors);
-            List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
-            film.getGenres().clear();
-            film.getGenres().addAll(genres);
-        }
+        log.debug("Films for director {} sorted by {}: {}", directorId, sortBy,
+                films.stream().map(f -> f.getName() + " (" + f.getReleaseDate() + ")").toList());
 
-        if ("year".equals(sortBy)) {
-            orderedFilms.sort(Comparator.comparing(Film::getReleaseDate));
-        }
+        return films;
+    }
 
-        return orderedFilms;
+    private void enrichFilmsWithDetails(List<Film> films) {
+        films.forEach(this::enrichFilmWithDetails);
+    }
+
+    private void enrichFilmWithDetails(Film film) {
+        List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
+        film.getDirectors().clear();
+        film.getDirectors().addAll(directors);
+        List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
+        film.getGenres().clear();
+        film.getGenres().addAll(genres);
     }
 }
