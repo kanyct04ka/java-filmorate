@@ -51,4 +51,8 @@ public class DirectorService {
         }
         directorRepository.deleteDirector(id);
     }
+
+    public List<Director> getFilmDirectors(int filmId) {
+        return directorRepository.getDirectorsByFilmId(filmId);
+    }
 }
