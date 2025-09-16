@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,7 +14,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.util.List;
 import java.util.Optional;
 
-
+@Slf4j
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
@@ -139,6 +140,8 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
+        log.debug("Director ID: {}, Sort by: {}", directorId, sortBy);
+
         String query = "select f.*, m.name as mpa_name" +
                        " from films f" +
                        " inner join mpa m on f.mpa_id = m.id" +
@@ -147,27 +150,26 @@ public class FilmRepository extends BaseRepository<Film> {
 
         if ("year".equals(sortBy)) {
             query += " order by f.release_date ASC";
+            log.debug("SQL for year sort: {}", query);
         } else if ("likes".equals(sortBy)) {
-            query = "select f.*, m.name as mpa_name, count(l.user_id) as like_count" +
+            query = "select f.*, m.name as mpa_name" +
                     " from films f" +
                     " inner join mpa m on f.mpa_id = m.id" +
                     " inner join film_directors fd on f.id = fd.film_id" +
                     " left join likes l on f.id = l.film_id" +
                     " where fd.director_id = ?" +
-                    " group by f.id, m.name" +
-                    " order by count(l.user_id) DESC, f.release_date ASC"; // Вторичка
+                    " group by f.id" +
+                    " order by count(l.user_id) DESC, f.release_date ASC";
+            log.debug("SQL for likes sort: {}", query);
         } else {
             query += " order by f.id";
         }
 
+        log.debug("Final SQL: {}", query);
         List<Film> films = getRecords(query, directorId);
 
         films.forEach(film -> {
-            List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
-            film.getDirectors().addAll(directors);
-
-            List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
-            film.getGenres().addAll(genres);
+            log.debug("Film: {}, Release Date: {}", film.getName(), film.getReleaseDate());
         });
 
         return films;
