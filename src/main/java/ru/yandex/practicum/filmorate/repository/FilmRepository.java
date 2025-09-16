@@ -148,9 +148,9 @@ public class FilmRepository extends BaseRepository<Film> {
                     " inner join mpa m on f.mpa_id = m.id" +
                     " inner join film_directors fd on f.id = fd.film_id" +
                     " where fd.director_id = ?" +
-                    " order by f.release_date ASC, f.id ASC";
+                    " order by f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
-            query = "select f.*, m.name as mpa_name, COALESCE(lc.like_count, 0) as like_count" +
+            query = "select f.*, m.name as mpa_name" +
                     " from films f" +
                     " inner join mpa m on f.mpa_id = m.id" +
                     " inner join film_directors fd on f.id = fd.film_id" +
@@ -160,7 +160,7 @@ public class FilmRepository extends BaseRepository<Film> {
                     "   group by film_id" +
                     " ) lc on f.id = lc.film_id" +
                     " where fd.director_id = ?" +
-                    " order by like_count DESC, f.release_date DESC, f.id DESC";
+                    " order by COALESCE(lc.like_count, 0) DESC, f.release_date DESC";
         } else {
             query = "select f.*, m.name as mpa_name" +
                     " from films f" +
@@ -170,31 +170,15 @@ public class FilmRepository extends BaseRepository<Film> {
                     " order by f.id";
         }
 
-        List<Film> films;
-        if ("likes".equals(sortBy)) {
-            films = jdbc.query(query, params, (rs, rowNum) -> {
-                Film film = rowMapper.mapRow(rs, rowNum);
-                List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
-                film.getDirectors().clear();
-                film.getDirectors().addAll(directors);
+        List<Film> films = getRecords(query, params);
+        for (Film film : films) {
+            List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
+            film.getDirectors().clear();
+            film.getDirectors().addAll(directors);
 
-                List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
-                film.getGenres().clear();
-                film.getGenres().addAll(genres);
-
-                return film;
-            });
-        } else {
-            films = getRecords(query, params);
-            for (Film film : films) {
-                List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
-                film.getDirectors().clear();
-                film.getDirectors().addAll(directors);
-
-                List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
-                film.getGenres().clear();
-                film.getGenres().addAll(genres);
-            }
+            List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
+            film.getGenres().clear();
+            film.getGenres().addAll(genres);
         }
 
         return films;
