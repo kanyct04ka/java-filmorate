@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 
@@ -13,19 +13,12 @@ import java.util.Set;
 @Builder
 public class Film {
 
+    private final Set<Genre> genres = new LinkedHashSet<>();
+    private final Set<Director> directors = new LinkedHashSet<>();
     private int id;
-
     private String name;
-
     private String description;
-
     private LocalDate releaseDate;
-
     private Duration duration;
-
     private Mpa mpa;
-
-    private final Set<Genre> genres = new HashSet<>();
-
-    private final Set<Director> directors = new HashSet<>();
 }
