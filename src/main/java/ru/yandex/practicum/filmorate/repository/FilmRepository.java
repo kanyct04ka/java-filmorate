@@ -143,7 +143,6 @@ public class FilmRepository extends BaseRepository<Film> {
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
         String query;
         Object[] params = {directorId};
-
         if ("year".equals(sortBy)) {
             query = "select f.*, m.name as mpa_name" +
                     " from films f" +
@@ -171,8 +170,8 @@ public class FilmRepository extends BaseRepository<Film> {
                     " where fd.director_id = ?" +
                     " order by f.id";
         }
-        List<Film> films = getRecords(query, params);
 
+        List<Film> films = getRecords(query, params);
         List<Film> orderedFilms = new ArrayList<>(films);
 
         for (Film film : orderedFilms) {
