@@ -171,7 +171,6 @@ public class FilmRepository extends BaseRepository<Film> {
                     " where fd.director_id = ?" +
                     " order by f.id";
         }
-        
         List<Film> films = getRecords(query, params);
 
         List<Film> orderedFilms = new ArrayList<>(films);
