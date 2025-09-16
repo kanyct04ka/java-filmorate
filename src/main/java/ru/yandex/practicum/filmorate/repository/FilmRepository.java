@@ -171,7 +171,6 @@ public class FilmRepository extends BaseRepository<Film> {
             film.getGenres().clear();
             film.getGenres().addAll(genres);
         }
-        
         return films;
     }
 }
