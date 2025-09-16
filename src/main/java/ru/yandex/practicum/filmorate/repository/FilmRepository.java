@@ -148,7 +148,7 @@ public class FilmRepository extends BaseRepository<Film> {
                     " inner join mpa m on f.mpa_id = m.id" +
                     " inner join film_directors fd on f.id = fd.film_id" +
                     " where fd.director_id = ?" +
-                    " order by EXTRACT(YEAR FROM f.release_date) ASC, f.release_date ASC";
+                    " order by EXTRACT(YEAR FROM f.release_date), f.id";
         } else if ("likes".equals(sortBy)) {
             query = "select f.*, m.name as mpa_name, count(l.user_id) as like_count" +
                     " from films f" +
@@ -156,8 +156,8 @@ public class FilmRepository extends BaseRepository<Film> {
                     " inner join film_directors fd on f.id = fd.film_id" +
                     " left join likes l on f.id = l.film_id" +
                     " where fd.director_id = ?" +
-                    " group by f.id, m.name, f.release_date" +
-                    " order by like_count DESC, f.release_date ASC";
+                    " group by f.id, m.name" +
+                    " order by like_count DESC, f.id DESC";
         } else {
             query = "select f.*, m.name as mpa_name" +
                     " from films f" +
