@@ -10,7 +10,10 @@ import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Repository
@@ -168,9 +171,12 @@ public class FilmRepository extends BaseRepository<Film> {
                     " where fd.director_id = ?" +
                     " order by f.id";
         }
-        
+
         List<Film> films = getRecords(query, params);
-        for (Film film : films) {
+
+        List<Film> orderedFilms = new ArrayList<>(films);
+
+        for (Film film : orderedFilms) {
             List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
             film.getDirectors().clear();
             film.getDirectors().addAll(directors);
@@ -178,6 +184,11 @@ public class FilmRepository extends BaseRepository<Film> {
             film.getGenres().clear();
             film.getGenres().addAll(genres);
         }
-        return films;
+
+        if ("year".equals(sortBy)) {
+            orderedFilms.sort(Comparator.comparing(Film::getReleaseDate));
+        }
+
+        return orderedFilms;
     }
 }
