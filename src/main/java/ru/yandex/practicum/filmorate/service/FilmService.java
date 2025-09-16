@@ -11,13 +11,11 @@ import ru.yandex.practicum.filmorate.api.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.exception.InternalErrorException;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
-import ru.yandex.practicum.filmorate.repository.FilmRepository;
-import ru.yandex.practicum.filmorate.repository.GenreRepository;
-import ru.yandex.practicum.filmorate.repository.MpaRepository;
-import ru.yandex.practicum.filmorate.repository.UserRepository;
+import ru.yandex.practicum.filmorate.repository.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -32,17 +30,20 @@ public class FilmService {
     private final GenreRepository genreRepository;
     private final MpaRepository mpaRepository;
     private final UserRepository userRepository;
+    private final DirectorRepository directorRepository;
 
     @Autowired
     public FilmService(FilmRepository filmRepository,
                        GenreRepository genreRepository,
                        MpaRepository mpaRepository,
-                       UserRepository userRepository
+                       UserRepository userRepository,
+                       DirectorRepository directorRepository
     ) {
         this.filmRepository = filmRepository;
         this.genreRepository = genreRepository;
         this.mpaRepository = mpaRepository;
         this.userRepository = userRepository;
+        this.directorRepository = directorRepository;
     }
 
     public List<FilmDTO> getAllFilms() {
@@ -94,9 +95,26 @@ public class FilmService {
             logNotFoundError("Указаны жанры, которых нет в базе");
         }
 
+        List<Director> allDirectors = directorRepository.getAllDirectors();
+        if (!filmRequest.getDirectors()
+                .stream()
+                .map(Director::getId)
+                .filter(i -> !allDirectors.stream()
+                        .map(Director::getId)
+                        .toList()
+                        .contains(i))
+                .toList()
+                .isEmpty()) {
+            logNotFoundError("Указаны режиссеры, которых нет в базе");
+        }
+
         Film film = filmRepository.addFilm(FilmMapper.mapToFilm(filmRequest));
         if (!filmRequest.getGenres().isEmpty()) {
             filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
+        }
+
+        if (!filmRequest.getDirectors().isEmpty()) {
+            directorRepository.linkDirectorsToFilm(film.getId(), new ArrayList<>(filmRequest.getDirectors()));
         }
 
         log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
@@ -124,6 +142,11 @@ public class FilmService {
         filmRepository.deleteLinkedGenres(film.getId());
         if (!filmRequest.getGenres().isEmpty()) {
             filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
+        }
+
+        directorRepository.deleteLinkedDirectors(film.getId());
+        if (!filmRequest.getDirectors().isEmpty()) {
+            directorRepository.linkDirectorsToFilm(film.getId(), new ArrayList<>(filmRequest.getDirectors()));
         }
 
         log.info("Фильм с ид={} обновлен", film.getId());
@@ -169,5 +192,20 @@ public class FilmService {
     private void logNotFoundError(String message) {
         log.error(message);
         throw new NotFoundIssueException(message);
+    }
+
+    public List<FilmDTO> getFilmsByDirector(int directorId, String sortBy) {
+        if (directorRepository.getDirectorById(directorId).isEmpty()) {
+            throw new NotFoundIssueException("Режиссер не найден");
+        }
+
+        if (sortBy != null && !sortBy.equals("year") && !sortBy.equals("likes")) {
+            throw new ValidationException("Параметр sortBy может быть только 'year' или 'likes'");
+        }
+
+        return filmRepository.getFilmsByDirector(directorId, sortBy)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

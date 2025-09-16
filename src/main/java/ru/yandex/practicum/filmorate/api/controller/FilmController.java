@@ -91,4 +91,15 @@ public class FilmController {
         return filmService.getTopLikedFilms(count);
     }
 
+
+    //Получает список фильмов режиссера, отсортированных по году выпуска или количеству лайков
+    @GetMapping("/director/{directorId}")
+    public List<FilmDTO> getFilmsByDirector(
+            @PathVariable
+            @Positive(message = "directorId должен быть целым числом больше 0")
+            int directorId,
+            @RequestParam(required = false) String sortBy
+    ) {
+        return filmService.getFilmsByDirector(directorId, sortBy);
+    }
 }

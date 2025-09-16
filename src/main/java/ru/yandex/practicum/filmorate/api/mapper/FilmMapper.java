@@ -21,6 +21,8 @@ public class FilmMapper {
                 .build();
 
         film.getGenres().addAll(filmRequest.getGenres());
+        // Добавляем режиссёров из DTO в модель Film
+        film.getDirectors().addAll(filmRequest.getDirectors());
         return film;
     }
 
@@ -35,6 +37,8 @@ public class FilmMapper {
                 .build();
 
         film.getGenres().addAll(filmRequest.getGenres());
+        // Добавляем режиссёров из DTO в модель Film
+        film.getDirectors().addAll(filmRequest.getDirectors());
         return film;
     }
 
@@ -49,7 +53,8 @@ public class FilmMapper {
                 .build();
 
         dto.getGenres().addAll(film.getGenres());
-
+        // Добавление режиссёров из модели Film в DTO
+        dto.getDirectors().addAll(film.getDirectors());
         return dto;
     }
 }

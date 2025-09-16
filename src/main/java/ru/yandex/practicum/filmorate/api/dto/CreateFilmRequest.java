@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.serializator.DurationSerializator;
@@ -31,4 +32,5 @@ public class CreateFilmRequest {
 
     private final Set<Genre> genres = new HashSet<>();
 
+    private final Set<Director> directors = new HashSet<>();
 }
