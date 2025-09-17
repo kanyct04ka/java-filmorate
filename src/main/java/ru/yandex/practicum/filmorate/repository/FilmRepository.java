@@ -106,4 +106,27 @@ public class FilmRepository extends BaseRepository<Film> {
                     + " order by q.counter desc";
         return getRecords(query, count);
     }
+
+    public List<Film> getRecommendations(int id) {
+        String query = """
+                with similar_user AS (
+                select l2.user_id
+                from likes l1
+                join likes l2 ON l1.film_id = l2.film_id
+                where l1.user_id = ?
+                    AND l2.user_id != ?
+                group by l2.user_id
+                order by count(*) DESC
+                limit 1
+                )
+                select f.*, m.name as mpa_name
+                from films f
+                left join mpa m on f.mpa_id = m.id
+                inner join likes l ON l.film_id = f.id
+                where l.user_id = (select user_id from similar_user)
+                    AND  f.id NOT IN (select film_id from likes where user_id = ?)
+                ;
+                """;
+        return getRecords(query, id, id, id);
+    }
 }
