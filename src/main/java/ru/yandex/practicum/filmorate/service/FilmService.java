@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -169,5 +170,20 @@ public class FilmService {
     private void logNotFoundError(String message) {
         log.error(message);
         throw new NotFoundIssueException(message);
+    }
+
+    public List<FilmDTO> getCommonFilms(int userId, int friendId) {
+        if (userRepository.getUserById(userId).isEmpty()) {
+            logNotFoundError("Пользователь с ID " + userId + " не найден");
+        }
+        if (userRepository.getUserById(friendId).isEmpty()) {
+            logNotFoundError("Пользователь с ID " + friendId + " не найден");
+        }
+
+        List<Film> commonFilms = filmRepository.getCommonFilms(userId, friendId);
+
+        return commonFilms.stream()
+                .map(FilmMapper::mapToFilmDto)
+                .collect(Collectors.toList());
     }
 }
