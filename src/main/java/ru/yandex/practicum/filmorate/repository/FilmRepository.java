@@ -141,6 +141,8 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
         String query;
+        Object[] params = {directorId};
+
         if ("year".equals(sortBy)) {
             query = "SELECT f.*, m.name as mpa_name " +
                     "FROM films f " +
@@ -150,19 +152,22 @@ public class FilmRepository extends BaseRepository<Film> {
                     "ORDER BY f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
             query = "SELECT f.*, m.name as mpa_name, " +
-                    "COUNT(l.user_id) as like_count " +
+                    "COALESCE((SELECT COUNT(*) FROM likes l WHERE l.film_id = f.id), 0) as like_count " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "LEFT JOIN likes l ON f.id = l.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "GROUP BY f.id, f.release_date " +
-                    "ORDER BY COUNT(l.user_id) DESC, f.release_date ASC";
+                    "ORDER BY like_count DESC";
         } else {
-            throw new ValidationException("Invalid sort parameter. Use 'year' or 'likes'");
+            query = "SELECT f.*, m.name as mpa_name " +
+                    "FROM films f " +
+                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
+                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "WHERE fd.director_id = ? " +
+                    "ORDER BY f.id";
         }
 
-        List<Film> films = getRecords(query, directorId);
+        List<Film> films = getRecords(query, params);
         enrichFilmsWithDetails(films);
         return films;
     }
@@ -178,5 +183,7 @@ public class FilmRepository extends BaseRepository<Film> {
         List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
         film.getGenres().clear();
         film.getGenres().addAll(genres);
+        String likeQuery = "SELECT COUNT(*) FROM likes WHERE film_id = ?";
+        Integer likeCount = jdbc.queryForObject(likeQuery, Integer.class, film.getId());
     }
 }
