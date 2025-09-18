@@ -142,25 +142,28 @@ public class FilmRepository extends BaseRepository<Film> {
         String query;
         Object[] params = {directorId};
         if ("year".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name " +
+            query = "SELECT f.*, m.name as mpa_name, d.name as director_name " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "INNER JOIN directors d ON fd.director_id = d.id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name, " +
+            query = "SELECT f.*, m.name as mpa_name, d.name as director_name, " +
                     "(SELECT COUNT(*) FROM likes l WHERE l.film_id = f.id) as like_count " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "INNER JOIN directors d ON fd.director_id = d.id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY like_count DESC, f.release_date ASC";
         } else {
-            query = "SELECT f.*, m.name as mpa_name " +
+            query = "SELECT f.*, m.name as mpa_name, d.name as director_name " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
+                    "INNER JOIN directors d ON fd.director_id = d.id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.id";
         }
