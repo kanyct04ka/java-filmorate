@@ -12,7 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 
-@Component
+@Component("filmRowMapper")
 public class FilmRowMapper implements RowMapper<Film> {
 
     private final GenreService genreService;

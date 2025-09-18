@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -18,7 +19,7 @@ public class FilmRepository extends BaseRepository<Film> {
 
     private final DirectorFilmRowMapper directorFilmRowMapper;
 
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper) {
+    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper) {
         super(jdbc, rowMapper);
         this.directorFilmRowMapper = directorFilmRowMapper;
     }
