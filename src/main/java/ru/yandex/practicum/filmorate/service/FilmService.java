@@ -107,9 +107,7 @@ public class FilmService {
 
     public FilmDTO updateFilm(UpdateFilmRequest filmRequest) {
 
-        if (filmRepository.getFilmById(filmRequest.getId()).isEmpty()) {
-            logNotFoundError("Фильм не найден");
-        }
+        checkFilmExists(filmRequest.getId());
 
         if (filmRequest.getReleaseDate() != null
                 && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
@@ -132,25 +130,15 @@ public class FilmService {
     }
 
     public void addLike(int filmId, int userId) {
-        if (filmRepository.getFilmById(filmId).isEmpty()) {
-            logNotFoundError("Фильм не найден");
-        }
-
-        if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Юзер не найден");
-        }
+        checkFilmExists(filmId);
+        checkUserExists(userId);
 
         filmRepository.addLike(filmId, userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        if (filmRepository.getFilmById(filmId).isEmpty()) {
-            logNotFoundError("Фильм не найден");
-        }
-
-        if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Юзер не найден");
-        }
+        checkFilmExists(filmId);
+        checkUserExists(userId);
 
         filmRepository.removeLike(filmId, userId);
     }
@@ -185,5 +173,17 @@ public class FilmService {
         return commonFilms.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
+    }
+
+    private void checkUserExists(int userId) {
+        if (userRepository.getUserById(userId).isEmpty()) {
+            logNotFoundError("Пользователь с ID " + userId + " не найден");
+        }
+    }
+
+    private void checkFilmExists(int filmId) {
+        if (filmRepository.getFilmById(filmId).isEmpty()) {
+            logNotFoundError("Фильм с ID " + filmId + " не найден");
+        }
     }
 }
