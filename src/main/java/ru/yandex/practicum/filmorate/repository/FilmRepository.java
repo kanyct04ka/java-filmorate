@@ -174,37 +174,45 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
         String query;
-        Object[] params = {directorId};
 
         if ("year".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name " +
-                    "FROM films f " +
-                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
-                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "WHERE fd.director_id = ? " +
-                    "ORDER BY f.release_date ASC";
-        } else if ("likes".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name, " +
-                    "COUNT(l.user_id) as like_count " +
-                    "FROM films f " +
-                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
-                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "LEFT JOIN likes l ON f.id = l.film_id " +
-                    "WHERE fd.director_id = ? " +
-                    "GROUP BY f.id, m.name " +
-                    "ORDER BY like_count DESC, f.id ASC";
-        } else {
-            query = "SELECT f.*, m.name as mpa_name " +
-                    "FROM films f " +
-                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
-                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "WHERE fd.director_id = ? " +
-                    "ORDER BY f.id";
-        }
+            query = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films f
+            INNER JOIN mpa m ON f.mpa_id = m.id
+            INNER JOIN film_directors fd ON f.id = fd.film_id
+            WHERE fd.director_id = ?
+            ORDER BY f.release_date ASC
+            """;
+            return getRecords(query, directorId);
 
-        List<Film> films = getRecords(query, params);
-        enrichFilmsWithDetails(films);
-        return films;
+        } else if ("likes".equals(sortBy)) {
+            query = """
+            SELECT f.*, m.name AS mpa_name, 
+                   COUNT(l.user_id) AS like_count
+            FROM films f
+            INNER JOIN mpa m ON f.mpa_id = m.id
+            INNER JOIN film_directors fd ON f.id = fd.film_id
+            LEFT JOIN likes l ON f.id = l.film_id
+            WHERE fd.director_id = ?
+            GROUP BY f.id, m.name
+            ORDER BY like_count DESC, f.id ASC
+            """;
+            List<Film> films = getRecords(query, directorId);
+            enrichFilmsWithDetails(films);
+            return films;
+
+        } else {
+            query = """
+            SELECT f.*, m.name AS mpa_name
+            FROM films f
+            INNER JOIN mpa m ON f.mpa_id = m.id
+            INNER JOIN film_directors fd ON f.id = fd.film_id
+            WHERE fd.director_id = ?
+            ORDER BY f.id
+            """;
+            return getRecords(query, directorId);
+        }
     }
 
     private void enrichFilmsWithDetails(List<Film> films) {
