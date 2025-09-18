@@ -161,12 +161,8 @@ public class FilmService {
     }
 
     public List<FilmDTO> getCommonFilms(int userId, int friendId) {
-        if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Пользователь с ID " + userId + " не найден");
-        }
-        if (userRepository.getUserById(friendId).isEmpty()) {
-            logNotFoundError("Пользователь с ID " + friendId + " не найден");
-        }
+        checkUserExists(userId);
+        checkUserExists(friendId);
 
         List<Film> commonFilms = filmRepository.getCommonFilms(userId, friendId);
 
