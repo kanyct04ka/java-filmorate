@@ -156,8 +156,8 @@ public class FilmRepository extends BaseRepository<Film> {
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
                     "LEFT JOIN likes l ON f.id = l.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "GROUP BY f.id " +
-                    "ORDER BY like_count DESC";
+                    "GROUP BY f.id, f.release_date " +
+                    "ORDER BY COUNT(l.user_id) DESC, f.release_date ASC";
         } else {
             throw new ValidationException("Invalid sort parameter. Use 'year' or 'likes'");
         }
