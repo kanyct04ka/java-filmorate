@@ -155,8 +155,8 @@ public class FilmRepository extends BaseRepository<Film> {
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
                     "LEFT JOIN likes l ON f.id = l.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "GROUP BY f.id, m.name " +
-                    "ORDER BY like_count DESC, f.release_date ASC";
+                    "GROUP BY f.id, m.name, f.release_date " +
+                    "ORDER BY COUNT(l.user_id) DESC, f.release_date ASC";
         } else {
             query = "SELECT f.*, m.name as mpa_name " +
                     "FROM films f " +
@@ -169,8 +169,8 @@ public class FilmRepository extends BaseRepository<Film> {
         List<Film> films = getRecords(query, params);
         enrichFilmsWithDetails(films);
 
-        log.debug("Films for director {} sorted by {}: {}", directorId, sortBy,
-                films.stream().map(f -> f.getName() + " (" + f.getReleaseDate() + ")").toList());
+        log.debug("Director {} films sorted by {}:", directorId, sortBy);
+        films.forEach(film -> log.debug(" - {} ({}): {}", film.getName(), film.getReleaseDate(), film.getDirectors()));
 
         return films;
     }
