@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.api.dto.DirectorRequest;
@@ -30,30 +32,34 @@ public class DirectorController {
     }
 
     @GetMapping("/{id}")
-    public Director getDirector(
+    public ResponseEntity<Director> getDirector(
             @PathVariable
             @Positive(message = "id должен быть целым числом больше 0")
             int id
     ) {
-        return directorService.getDirectorById(id);
+        Director director = directorService.getDirectorById(id);
+        return ResponseEntity.ok(director);
     }
 
     @PostMapping
-    public Director createDirector(@Valid @RequestBody DirectorRequest directorRequest) {
-        return directorService.createDirector(directorRequest);
+    public ResponseEntity<Director> createDirector(@Valid @RequestBody DirectorRequest directorRequest) {
+        Director director = directorService.createDirector(directorRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(director);
     }
 
     @PutMapping
-    public Director updateDirector(@Valid @RequestBody Director director) {
-        return directorService.updateDirector(director);
+    public ResponseEntity<Director> updateDirector(@Valid @RequestBody Director director) {
+        Director updatedDirector = directorService.updateDirector(director);
+        return ResponseEntity.ok(updatedDirector);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteDirector(
+    public ResponseEntity<Void> deleteDirector(
             @PathVariable
             @Positive(message = "id должен быть целым числом больше 0")
             int id
     ) {
         directorService.deleteDirector(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,6 +14,8 @@ import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 
+import ru.yandex.practicum.filmorate.api.mapper.UserMapper;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -94,5 +97,14 @@ public class UserController {
             int friendId
     ) {
         return friendshipService.getCommonFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDTO> getUserById(
+            @PathVariable
+            @Positive(message = "id должен быть целым числом больше 0")
+            int id) {
+        User user = userService.getUserById(id);
+        return ResponseEntity.ok(UserMapper.mapToUserDto(user));
     }
 }
