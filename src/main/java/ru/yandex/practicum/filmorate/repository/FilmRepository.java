@@ -212,17 +212,18 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     private void enrichFilmsWithDetails(List<Film> films) {
-        films.forEach(this::enrichFilmWithDetails);
+        for (Film film : films) {
+            enrichFilmWithDetails(film);
+        }
     }
 
     private void enrichFilmWithDetails(Film film) {
         List<Director> directors = directorRepository.getDirectorsByFilmId(film.getId());
         film.getDirectors().clear();
         film.getDirectors().addAll(directors);
+
         List<Genre> genres = genreRepository.getGenresByFilmId(film.getId());
         film.getGenres().clear();
         film.getGenres().addAll(genres);
-        String likeQuery = "SELECT COUNT(*) FROM likes WHERE film_id = ?";
-        Integer likeCount = jdbc.queryForObject(likeQuery, Integer.class, film.getId());
     }
 }
