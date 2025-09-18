@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.api.dto.CreateReviewRequest;
 import ru.yandex.practicum.filmorate.api.dto.ReviewDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.api.mapper.ReviewMapper;
-import ru.yandex.practicum.filmorate.exception.InternalErrorException;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Review;
@@ -71,7 +70,7 @@ public class ReviewService {
         log.info("Получен запрос на создание отзыва от пользователя с id = {} к фильму с id = {}",
                 reviewRequest.getUserId(), reviewRequest.getFilmId());
 
-        if (reviewRequest.getFilmId() == 0|| reviewRequest.getUserId() == 0){
+        if (reviewRequest.getFilmId() == 0 || reviewRequest.getUserId() == 0) {
             throw new ValidationException("Id фильма и пользователя не может быть null");
         }
 
@@ -90,7 +89,7 @@ public class ReviewService {
     public ReviewDTO updateReview(UpdateReviewRequest reviewRequest) {
         log.info("Получен запрос на обновление отзыва с id = {}", reviewRequest.getReviewId());
 
-        if (reviewRequest.getFilmId() == 0|| reviewRequest.getUserId() == 0){
+        if (reviewRequest.getFilmId() == 0 || reviewRequest.getUserId() == 0) {
             throw new ValidationException("Id фильма и пользователя не может быть null");
         }
 
