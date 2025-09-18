@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 
+@Slf4j
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
@@ -28,7 +29,7 @@ public class FilmRepository extends BaseRepository<Film> {
                 film.getReleaseDate(),
                 film.getDuration().toSeconds(),
                 film.getMpa().getId()
-                ).intValue();
+        ).intValue();
         film.setId(id);
         return film;
     }
@@ -94,16 +95,50 @@ public class FilmRepository extends BaseRepository<Film> {
         jdbc.update(query, filmId, userId);
     }
 
-    public List<Film> getTopLikedFilms(int count) {
-        String query = "select f.*, m.name as mpa_name"
-                + " from films f"
-                + " left join mpa m on f.mpa_id = m.id"
-                + " inner join (select film_id, count(user_id) as counter"
-                    + " from likes"
-                    + " group by film_id"
-                    + " order by count(user_id) desc"
-                    + " limit ?) q on q.film_id = f.id"
-                    + " order by q.counter desc";
-        return getRecords(query, count);
+    public List<Film> getMostPopular(Integer count, Integer genreId, Integer year) {
+        String onlyPopularQuery = """
+                select f.*, m.name as mpa_name
+                from films f
+                left join mpa m on f.mpa_id = m.id
+                inner join (select film_id, count(user_id) as counter
+                from likes
+                group by film_id
+                order by count(user_id) desc
+                limit ?) q on q.film_id = f.id
+                order by counter desc""";
+        String baseQuery = """
+                select f.*, m.name AS mpa_name
+                from films f
+                left join mpa m ON f.mpa_id = m.id
+                left join film_genres fg ON f.id = fg.film_id
+                left join genres g ON fg.genre_id = g.id
+                inner join (
+                    select film_id, count(user_id) AS counter
+                    from likes
+                    group by film_id
+                    order by counter DESC
+                    limit ?) q ON q.film_id = f.id
+                """;
+        String onlyGenreQuery = baseQuery + """
+                where fg.genre_id = ?
+                order by q.counter DESC
+                """;
+        String onlyYearQuery = baseQuery + """
+                where EXTRACT(YEAR FROM f.release_date) = ?
+                order by q.counter DESC
+                """;
+        String genreYearQuery = baseQuery + """
+                where fg.genre_id = ?
+                    AND EXTRACT(YEAR FROM f.release_date) = ?
+                order by q.counter DESC
+                """;
+        if (year == null && genreId == null) {
+            return getRecords(onlyPopularQuery, count);
+        } else if (genreId == null) {
+            return getRecords(onlyYearQuery, count, year);
+        } else if (year == null) {
+            return getRecords(onlyGenreQuery, count, genreId);
+        }
+        return getRecords(genreYearQuery, count, genreId, year);
     }
 }
