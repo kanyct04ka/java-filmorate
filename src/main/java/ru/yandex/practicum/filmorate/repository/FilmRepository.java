@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -140,35 +141,28 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
         String query;
-        Object[] params = {directorId};
         if ("year".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name, d.name as director_name " +
+            query = "SELECT f.*, m.name as mpa_name " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "INNER JOIN directors d ON fd.director_id = d.id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
-            query = "SELECT f.*, m.name as mpa_name, d.name as director_name, " +
-                    "(SELECT COUNT(*) FROM likes l WHERE l.film_id = f.id) as like_count " +
+            query = "SELECT f.*, m.name as mpa_name, " +
+                    "COUNT(l.user_id) as like_count " +
                     "FROM films f " +
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "INNER JOIN directors d ON fd.director_id = d.id " +
+                    "LEFT JOIN likes l ON f.id = l.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "ORDER BY like_count DESC, f.release_date ASC";
+                    "GROUP BY f.id " +
+                    "ORDER BY like_count DESC";
         } else {
-            query = "SELECT f.*, m.name as mpa_name, d.name as director_name " +
-                    "FROM films f " +
-                    "INNER JOIN mpa m ON f.mpa_id = m.id " +
-                    "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                    "INNER JOIN directors d ON fd.director_id = d.id " +
-                    "WHERE fd.director_id = ? " +
-                    "ORDER BY f.id";
+            throw new ValidationException("Invalid sort parameter. Use 'year' or 'likes'");
         }
 
-        List<Film> films = getRecords(query, params);
+        List<Film> films = getRecords(query, directorId);
         enrichFilmsWithDetails(films);
         return films;
     }

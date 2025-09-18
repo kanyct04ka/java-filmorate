@@ -208,4 +208,16 @@ public class FilmService {
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
     }
+
+    public List<Film> getFilmsByDirectorIdSortedByYear(int directorId) {
+        directorRepository.getDirectorById(directorId)
+                .orElseThrow(() -> new NotFoundIssueException("Director not found with id: " + directorId));
+        return filmRepository.getFilmsByDirector(directorId, "year");
+    }
+
+    public List<Film> getFilmsByDirectorIdSortedByLikes(int directorId) {
+        directorRepository.getDirectorById(directorId)
+                .orElseThrow(() -> new NotFoundIssueException("Director not found with id: " + directorId));
+        return filmRepository.getFilmsByDirector(directorId, "likes");
+    }
 }
