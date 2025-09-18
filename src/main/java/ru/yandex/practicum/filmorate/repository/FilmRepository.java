@@ -188,7 +188,7 @@ public class FilmRepository extends BaseRepository<Film> {
 
         } else if ("likes".equals(sortBy)) {
             query = """
-            SELECT f.*, m.name AS mpa_name, 
+            SELECT f.*, m.name AS mpa_name,
                    COUNT(l.user_id) AS like_count
             FROM films f
             INNER JOIN mpa m ON f.mpa_id = m.id
