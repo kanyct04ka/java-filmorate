@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,8 +16,11 @@ import java.util.Optional;
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper) {
+    private final DirectorFilmRowMapper directorFilmRowMapper;
+
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper) {
         super(jdbc, rowMapper);
+        this.directorFilmRowMapper = directorFilmRowMapper;
     }
 
     public Film addFilm(Film film) {
@@ -152,6 +156,6 @@ public class FilmRepository extends BaseRepository<Film> {
                        "WHERE fd.director_id = ? " +
                        "ORDER BY " + orderByClause;
 
-        return getRecords(query, directorId);
+        return jdbc.query(query, directorFilmRowMapper, directorId);
     }
 }
