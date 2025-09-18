@@ -234,6 +234,16 @@ public class FilmService {
 
         List<Film> films = filmRepository.getDirectorFilmsSorted(directorId, sortBy);
 
+        for (Film film : films) {
+            List<Genre> filmGenres = genreRepository.getGenresByFilmId(film.getId());
+            film.getGenres().clear();
+            film.getGenres().addAll(filmGenres);
+
+            List<Director> filmDirectors = directorRepository.getDirectorsByFilmId(film.getId());
+            film.getDirectors().clear();
+            film.getDirectors().addAll(filmDirectors);
+        }
+
         return films.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
