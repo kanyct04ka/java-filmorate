@@ -85,11 +85,19 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<FilmDTO> getPopularFilms(
-            @RequestParam(defaultValue = "10")
-            @Positive(message = "Количество должно быть целым числом больше 0")
-            int count) {
-        return filmService.getTopLikedFilms(count);
+    public List<FilmDTO> getMostPopular(
+            @RequestParam(required = false, defaultValue = "1000")
+            @Positive(message = "count должно быть целым числом больше 0")
+            Integer count,
+            @RequestParam(required = false)
+            @Positive(message = "genreId должно быть целым числом больше 0")
+            Integer genreId,
+            @RequestParam(required = false)
+            @Positive(message = "year должно быть целым числом больше 0")
+            Integer year
+    ) {
+        log.info("сработал метод getMostPopular");
+        return filmService.getMostPopular(count, genreId, year);
     }
 
     @GetMapping("/director/{directorId}")

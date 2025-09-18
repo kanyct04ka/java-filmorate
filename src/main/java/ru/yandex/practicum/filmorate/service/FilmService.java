@@ -177,8 +177,8 @@ public class FilmService {
         filmRepository.removeLike(filmId, userId);
     }
 
-    public List<FilmDTO> getTopLikedFilms(int quantity) {
-        return filmRepository.getTopLikedFilms(quantity)
+    public List<FilmDTO> getMostPopular(Integer count, Integer genreId, Integer year) {
+        return filmRepository.getMostPopular(count, genreId, year)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
