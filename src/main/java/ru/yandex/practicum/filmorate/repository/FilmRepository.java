@@ -136,7 +136,7 @@ public class FilmRepository extends BaseRepository<Film> {
         } else if ("likes".equalsIgnoreCase(sortBy)) {
             orderByClause = "like_count DESC";
         } else {
-            orderByClause = "f.id";
+            orderByClause = "f.id ASC";
         }
 
         String query = "SELECT f.*, m.name AS mpa_name, " +
