@@ -34,22 +34,20 @@ public class DirectorService {
     }
 
     public Director createDirector(Director director) {
-        // Можно добавить валидацию имени
+
         return directorRepository.addDirector(director);
     }
 
     public Director updateDirector(Director director) {
-        // Проверка существования
-        getDirectorById(director.getId()); // Бросит исключение, если не найден
+
+        getDirectorById(director.getId());
         return directorRepository.updateDirector(director);
     }
 
     public void deleteDirector(int id) {
-        // Можно добавить проверку, есть ли фильмы у режиссера
         boolean deleted = directorRepository.deleteDirector(id);
         if (!deleted) {
             log.warn("Режиссер с ID {} не был удален (возможно, не существовал)", id);
-            // Или бросить исключение
         }
     }
 }

@@ -64,7 +64,6 @@ public class FilmService {
     }
 
     public FilmDTO addFilm(CreateFilmRequest filmRequest) {
-        // --- Существующая валидация ---
         if (filmRequest.getReleaseDate() != null
             && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");

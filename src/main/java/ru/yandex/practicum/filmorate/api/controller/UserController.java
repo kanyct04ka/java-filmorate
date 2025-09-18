@@ -25,7 +25,6 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-//    private final UserStorage userStorage;
     private final UserService userService;
     private final FriendshipService friendshipService;
 

@@ -51,7 +51,7 @@ public class DirectorController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content при успешном удалении
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDirector(
             @PathVariable
             @Positive(message = "ID режиссера должен быть положительным числом")
