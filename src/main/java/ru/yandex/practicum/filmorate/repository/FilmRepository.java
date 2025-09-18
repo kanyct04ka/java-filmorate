@@ -174,7 +174,7 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getFilmsByDirector(int directorId, String sortBy) {
         String query;
-        Object[] params;
+        Object[] params = {directorId};
 
         if ("year".equals(sortBy)) {
             query = "SELECT f.*, m.name as mpa_name " +
@@ -182,8 +182,7 @@ public class FilmRepository extends BaseRepository<Film> {
                     "INNER JOIN mpa m ON f.mpa_id = m.id " +
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
-                    "ORDER BY f.release_date";
-            params = new Object[]{directorId};
+                    "ORDER BY f.release_date ASC";
         } else if ("likes".equals(sortBy)) {
             query = "SELECT f.*, m.name as mpa_name, " +
                     "COUNT(l.user_id) as like_count " +
@@ -193,8 +192,7 @@ public class FilmRepository extends BaseRepository<Film> {
                     "LEFT JOIN likes l ON f.id = l.film_id " +
                     "WHERE fd.director_id = ? " +
                     "GROUP BY f.id, m.name " +
-                    "ORDER BY like_count DESC";
-            params = new Object[]{directorId};
+                    "ORDER BY like_count DESC, f.id ASC";
         } else {
             query = "SELECT f.*, m.name as mpa_name " +
                     "FROM films f " +
@@ -202,7 +200,6 @@ public class FilmRepository extends BaseRepository<Film> {
                     "INNER JOIN film_directors fd ON f.id = fd.film_id " +
                     "WHERE fd.director_id = ? " +
                     "ORDER BY f.id";
-            params = new Object[]{directorId};
         }
 
         List<Film> films = getRecords(query, params);

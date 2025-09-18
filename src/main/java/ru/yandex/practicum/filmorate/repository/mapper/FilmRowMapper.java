@@ -40,7 +40,6 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .build();
 
         film.getGenres().addAll(genreService.getFilmGenres(film.getId()));
-        film.getDirectors().addAll(directorService.getFilmDirectors(film.getId()));
         return film;
     }
 }
