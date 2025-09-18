@@ -35,4 +35,6 @@ public class GenreService {
     public List<Genre> getFilmGenres(int filmId) {
         return genreRepository.getGenresByFilmId(filmId);
     }
+
+
 }

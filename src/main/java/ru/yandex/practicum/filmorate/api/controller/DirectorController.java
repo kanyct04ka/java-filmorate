@@ -5,13 +5,10 @@ import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.api.dto.DirectorRequest;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.service.DirectorService;
-
 import java.util.List;
 
 @Slf4j
@@ -19,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/directors")
 public class DirectorController {
+
     private final DirectorService directorService;
 
     @Autowired
@@ -32,34 +30,33 @@ public class DirectorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Director> getDirector(
+    public Director getDirector(
             @PathVariable
-            @Positive(message = "id должен быть целым числом больше 0")
-            int id
-    ) {
-        Director director = directorService.getDirectorById(id);
-        return ResponseEntity.ok(director);
+            @Positive(message = "ID режиссера должен быть положительным числом")
+            int id) {
+        return directorService.getDirectorById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Director> createDirector(@Valid @RequestBody DirectorRequest directorRequest) {
-        Director director = directorService.createDirector(directorRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(director);
+    @ResponseStatus(HttpStatus.CREATED)
+    public Director createDirector(@Valid @RequestBody Director director) {
+        log.info("Получен запрос на создание режиссера: {}", director.getName());
+        return directorService.createDirector(director);
     }
 
     @PutMapping
-    public ResponseEntity<Director> updateDirector(@Valid @RequestBody Director director) {
-        Director updatedDirector = directorService.updateDirector(director);
-        return ResponseEntity.ok(updatedDirector);
+    public Director updateDirector(@Valid @RequestBody Director director) {
+        log.info("Получен запрос на обновление режиссера с ID {}: {}", director.getId(), director.getName());
+        return directorService.updateDirector(director);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDirector(
+    @ResponseStatus(HttpStatus.NO_CONTENT) // 204 No Content при успешном удалении
+    public void deleteDirector(
             @PathVariable
-            @Positive(message = "id должен быть целым числом больше 0")
-            int id
-    ) {
+            @Positive(message = "ID режиссера должен быть положительным числом")
+            int id) {
+        log.info("Получен запрос на удаление режиссера с ID {}", id);
         directorService.deleteDirector(id);
-        return ResponseEntity.noContent().build();
     }
 }

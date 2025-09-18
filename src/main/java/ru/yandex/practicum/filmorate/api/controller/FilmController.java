@@ -5,8 +5,6 @@ import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,28 +36,27 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<FilmDTO> getFilm(
+    public FilmDTO getFilm(
             @PathVariable
             @Positive(message = "id должен быть больше 0")
             int id) {
-        FilmDTO film = filmService.getFilm(id);
-        return ResponseEntity.ok(film);
+        return filmService.getFilm(id);
     }
 
     @PostMapping
-    public ResponseEntity<FilmDTO> createFilm(@Valid @RequestBody CreateFilmRequest film) {
-        FilmDTO createdFilm = filmService.addFilm(film);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdFilm);
+    public FilmDTO createFilm(@Valid @RequestBody CreateFilmRequest film) {
+        return filmService.addFilm(film);
     }
 
     @PutMapping
-    public ResponseEntity<FilmDTO> updateFilm(@Valid @RequestBody UpdateFilmRequest film) {
-        FilmDTO updatedFilm = filmService.updateFilm(film);
-        return ResponseEntity.ok(updatedFilm);
+    public FilmDTO updateFilm(@Valid @RequestBody UpdateFilmRequest film) {
+        return filmService.updateFilm(film);
     }
 
+
+
     @PutMapping("/{filmId}/like/{userId}")
-    public ResponseEntity<Void> addLike(
+    public void addLike(
             @PathVariable
             @Positive(message = "film_id должен быть целым числом больше 0")
             int filmId,
@@ -68,11 +65,10 @@ public class FilmController {
             int userId
     ) {
         filmService.addLike(filmId, userId);
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{filmId}/like/{userId}")
-    public ResponseEntity<Void> removeLike(
+    public void removeLike(
             @PathVariable
             @Positive(message = "film_id должен быть целым числом больше 0")
             int filmId,
@@ -81,32 +77,27 @@ public class FilmController {
             int userId
     ) {
         filmService.removeLike(filmId, userId);
-        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/popular")
-    public List<FilmDTO> getMostPopular(
-            @RequestParam(required = false, defaultValue = "1000")
-            @Positive(message = "count должно быть целым числом больше 0")
-            Integer count,
-            @RequestParam(required = false)
-            @Positive(message = "genreId должно быть целым числом больше 0")
-            Integer genreId,
-            @RequestParam(required = false)
-            @Positive(message = "year должно быть целым числом больше 0")
-            Integer year
-    ) {
-        log.info("сработал метод getMostPopular");
-        return filmService.getMostPopular(count, genreId, year);
+    public List<FilmDTO> getPopularFilms(
+            @RequestParam
+            @Positive(message = "Количество должно быть целым числом больше 0")
+            int count) {
+        if (count == 0) {
+            count = 10;
+        }
+
+        return filmService.getTopLikedFilms(count);
     }
 
     @GetMapping("/director/{directorId}")
-    public List<FilmDTO> getFilmsByDirector(
+    public List<FilmDTO> getDirectorFilms(
             @PathVariable
-            @Positive(message = "directorId должен быть целым числом больше 0")
+            @Positive(message = "ID режиссера должен быть положительным числом")
             int directorId,
-            @RequestParam(required = false) String sortBy
-    ) {
-        return filmService.getFilmsByDirector(directorId, sortBy);
+            @RequestParam(defaultValue = "id") String sortBy) {
+        return filmService.getDirectorFilms(directorId, sortBy);
     }
+
 }

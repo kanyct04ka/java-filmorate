@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import ru.yandex.practicum.filmorate.api.dto.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateFilmRequest;
@@ -20,7 +19,9 @@ import ru.yandex.practicum.filmorate.repository.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -63,13 +64,14 @@ public class FilmService {
     }
 
     public FilmDTO addFilm(CreateFilmRequest filmRequest) {
+        // --- Существующая валидация ---
         if (filmRequest.getReleaseDate() != null
-                && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
 
         if (filmRequest.getDuration() != null
-                && filmRequest.getDuration().toSeconds() <= 0) {
+            && filmRequest.getDuration().toSeconds() <= 0) {
             logValidationError("Продолжительность фильма должна быть положительным числом");
         }
 
@@ -94,31 +96,38 @@ public class FilmService {
                 .isEmpty()) {
             logNotFoundError("Указаны жанры, которых нет в базе");
         }
-
-        List<Director> allDirectors = directorRepository.getAllDirectors();
-        if (!filmRequest.getDirectors()
-                .stream()
+        List<Integer> directorIds = filmRequest.getDirectors().stream()
                 .map(Director::getId)
-                .filter(i -> !allDirectors.stream()
-                        .map(Director::getId)
-                        .toList()
-                        .contains(i))
-                .toList()
-                .isEmpty()) {
-            logNotFoundError("Указаны режиссеры, которых нет в базе");
+                .filter(Objects::nonNull)
+                .filter(id -> id > 0)
+                .toList();
+        if (!directorIds.isEmpty()) {
+            List<Director> allDirectors = directorRepository.getAllDirectors();
+            List<Integer> existingDirectorIds = allDirectors.stream()
+                    .map(Director::getId)
+                    .toList();
+
+            if (!existingDirectorIds.containsAll(directorIds)) {
+                logNotFoundError("Указаны режиссеры, которых нет в базе");
+            }
+        }
+        long directorsWithId = filmRequest.getDirectors().stream()
+                .map(Director::getId)
+                .filter(Objects::nonNull)
+                .count();
+        if (filmRequest.getDirectors().size() != directorsWithId) {
+            logValidationError("Все указанные режиссеры должны иметь корректный ID.");
         }
 
         Film film = filmRepository.addFilm(FilmMapper.mapToFilm(filmRequest));
         if (!filmRequest.getGenres().isEmpty()) {
             filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
         }
-
-        if (!filmRequest.getDirectors().isEmpty()) {
-            directorRepository.linkDirectorsToFilm(film.getId(), new ArrayList<>(filmRequest.getDirectors()));
+        if (!directorIds.isEmpty()) {
+            filmRepository.linkDirectorsToFilm(film.getId(), directorIds);
         }
 
         log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
-
         return FilmMapper.mapToFilmDto(film);
     }
 
@@ -129,13 +138,36 @@ public class FilmService {
         }
 
         if (filmRequest.getReleaseDate() != null
-                && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
 
         if (filmRequest.getDuration() != null
-                && filmRequest.getDuration().toSeconds() <= 0) {
+            && filmRequest.getDuration().toSeconds() <= 0) {
             logValidationError("Продолжительность фильма должна быть положительным числом");
+        }
+        List<Integer> directorIds = filmRequest.getDirectors().stream()
+                .map(Director::getId)
+                .filter(Objects::nonNull)
+                .filter(id -> id > 0)
+                .toList();
+
+        if (!directorIds.isEmpty()) {
+            List<Director> allDirectors = directorRepository.getAllDirectors();
+            List<Integer> existingDirectorIds = allDirectors.stream()
+                    .map(Director::getId)
+                    .toList();
+
+            if (!existingDirectorIds.containsAll(directorIds)) {
+                logNotFoundError("Указаны режиссеры, которых нет в базе");
+            }
+        }
+        long directorsWithId = filmRequest.getDirectors().stream()
+                .map(Director::getId)
+                .filter(Objects::nonNull)
+                .count();
+        if (filmRequest.getDirectors().size() != directorsWithId) {
+            logValidationError("Все указанные режиссеры должны иметь корректный ID.");
         }
 
         Film film = filmRepository.updateFilm(FilmMapper.mapToFilm(filmRequest));
@@ -143,10 +175,9 @@ public class FilmService {
         if (!filmRequest.getGenres().isEmpty()) {
             filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
         }
-
-        directorRepository.deleteLinkedDirectors(film.getId());
-        if (!filmRequest.getDirectors().isEmpty()) {
-            directorRepository.linkDirectorsToFilm(film.getId(), new ArrayList<>(filmRequest.getDirectors()));
+        filmRepository.deleteLinkedDirectors(film.getId());
+        if (!directorIds.isEmpty()) {
+            filmRepository.linkDirectorsToFilm(film.getId(), directorIds);
         }
 
         log.info("Фильм с ид={} обновлен", film.getId());
@@ -177,8 +208,8 @@ public class FilmService {
         filmRepository.removeLike(filmId, userId);
     }
 
-    public List<FilmDTO> getMostPopular(Integer count, Integer genreId, Integer year) {
-        return filmRepository.getMostPopular(count, genreId, year)
+    public List<FilmDTO> getTopLikedFilms(int quantity) {
+        return filmRepository.getTopLikedFilms(quantity)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();
@@ -194,18 +225,17 @@ public class FilmService {
         throw new NotFoundIssueException(message);
     }
 
-    public List<FilmDTO> getFilmsByDirector(int directorId, String sortBy) {
-        if (directorRepository.getDirectorById(directorId).isEmpty()) {
+    public List<FilmDTO> getDirectorFilms(int directorId, String sortBy) {
+        Optional<Director> directorOpt = directorRepository.getDirectorById(directorId);
+        if (directorOpt.isEmpty()) {
+            log.error("Режиссер с ID {} не найден при попытке получить его фильмы", directorId);
             throw new NotFoundIssueException("Режиссер не найден");
         }
 
-        if (sortBy != null && !sortBy.equals("year") && !sortBy.equals("likes")) {
-            throw new ValidationException("Параметр sortBy может быть только 'year' или 'likes'");
-        }
+        List<Film> films = filmRepository.getDirectorFilmsSorted(directorId, sortBy);
 
-        return filmRepository.getFilmsByDirector(directorId, sortBy)
-                .stream()
+        return films.stream()
                 .map(FilmMapper::mapToFilmDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 }
