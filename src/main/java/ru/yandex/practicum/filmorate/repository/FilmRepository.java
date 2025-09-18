@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.repository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -28,7 +27,7 @@ public class FilmRepository extends BaseRepository<Film> {
                 film.getReleaseDate(),
                 film.getDuration().toSeconds(),
                 film.getMpa().getId()
-                ).intValue();
+        ).intValue();
         film.setId(id);
         return film;
     }
@@ -99,33 +98,44 @@ public class FilmRepository extends BaseRepository<Film> {
                 + " from films f"
                 + " left join mpa m on f.mpa_id = m.id"
                 + " inner join (select film_id, count(user_id) as counter"
-                    + " from likes"
-                    + " group by film_id"
-                    + " order by count(user_id) desc"
-                    + " limit ?) q on q.film_id = f.id"
-                    + " order by q.counter desc";
+                + " from likes"
+                + " group by film_id"
+                + " order by count(user_id) desc"
+                + " limit ?) q on q.film_id = f.id"
+                + " order by q.counter desc";
         return getRecords(query, count);
     }
 
     public List<Film> getRecommendations(int id) {
         String query = """
-                with similar_user AS (
-                select l2.user_id
-                from likes l1
-                join likes l2 ON l1.film_id = l2.film_id
-                where l1.user_id = ?
-                    AND l2.user_id != ?
-                group by l2.user_id
-                order by count(*) DESC
-                limit 1
-                )
-                select f.*, m.name as mpa_name
+                select f.*, m.name AS mpa_name
                 from films f
-                left join mpa m on f.mpa_id = m.id
-                inner join likes l ON l.film_id = f.id
-                where l.user_id = (select user_id from similar_user)
-                    AND  f.id NOT IN (select film_id from likes where user_id = ?)
-                ;
+                left join mpa m ON f.mpa_id = m.id
+                inner join (
+                    select l.film_id, count(l.user_id) AS counter
+                    from likes l
+                    where l.film_id IN (
+                    select distinct l2.film_id
+                    from likes l2
+                    where l2.user_id IN (
+                        select l3.user_id
+                        from likes l1
+                        join likes l3 ON l1.film_id = l3.film_id
+                        where l1.user_id = ?
+                        AND l3.user_id <> ?
+                        group by l3.user_id
+                        order by count(*) DESC
+                        limit 5
+                        )
+                    AND l2.film_id NOT IN (
+                        select film_id from likes where user_id = ?
+                        )
+                    limit 20
+                    )
+                    group by l.film_id
+                    order by counter DESC
+                ) q ON q.film_id = f.id
+                order by q.counter DESC;
                 """;
         return getRecords(query, id, id, id);
     }
