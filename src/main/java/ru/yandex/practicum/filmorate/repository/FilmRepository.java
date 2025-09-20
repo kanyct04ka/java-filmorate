@@ -223,15 +223,15 @@ public class FilmRepository extends BaseRepository<Film> {
         WHERE fd.director_id = ?
         """;
 
-        String orderByClause;
+        String orderClause;
         if ("year".equalsIgnoreCase(sortBy)) {
-            orderByClause = " ORDER BY f.release_date ASC";
+            orderClause = " ORDER BY f.release_date ASC";
         } else if ("likes".equalsIgnoreCase(sortBy)) {
-            orderByClause = " ORDER BY like_count DESC";
+            orderClause = " ORDER BY like_count DESC";
         } else {
-            orderByClause = " ORDER BY f.release_date ASC";
+            orderClause = " ORDER BY f.release_date ASC";
         }
-        String fullQuery = baseQuery + orderByClause;
+        String fullQuery = baseQuery + orderClause;
         return jdbc.query(fullQuery, filmWithLikesRowMapper, directorId);
     }
 }
