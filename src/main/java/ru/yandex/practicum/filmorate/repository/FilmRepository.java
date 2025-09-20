@@ -211,7 +211,7 @@ public class FilmRepository extends BaseRepository<Film> {
     public List<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
         String baseQuery = """
         SELECT f.*, m.name AS mpa_name,
-               COALESCE(l.like_count, 0) AS like_count
+               COALESCE(lc.like_count, 0) AS like_count
         FROM films f
         INNER JOIN mpa m ON f.mpa_id = m.id
         INNER JOIN film_directors fd ON f.id = fd.film_id
@@ -219,7 +219,7 @@ public class FilmRepository extends BaseRepository<Film> {
             SELECT film_id, COUNT(user_id) AS like_count
             FROM likes
             GROUP BY film_id
-        ) l ON f.id = l.film_id
+        ) lc ON f.id = lc.film_id
         WHERE fd.director_id = ?
         """;
 
