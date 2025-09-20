@@ -161,6 +161,13 @@ public class FilmService {
                 .toList();
     }
 
+    public List<FilmDTO> getRecommendations(int id) {
+        return filmRepository.getRecommendations(id)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
     private void logValidationError(String message) {
         log.error(message);
         throw new ValidationException(message);
