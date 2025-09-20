@@ -3,22 +3,20 @@ package ru.yandex.practicum.filmorate.repository.mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
-
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.GenreService;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 
-@Component("filmRowMapper")
-public class FilmRowMapper implements RowMapper<Film> {
+@Component
+public class DirectorFilmRowMapper implements RowMapper<Film> {
 
     private final GenreService genreService;
 
     @Autowired
-    public FilmRowMapper(GenreService genreService) {
+    public DirectorFilmRowMapper(GenreService genreService) {
         this.genreService = genreService;
     }
 
@@ -37,6 +35,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .build();
 
         film.getGenres().addAll(genreService.getFilmGenres(film.getId()));
+
         return film;
     }
 }

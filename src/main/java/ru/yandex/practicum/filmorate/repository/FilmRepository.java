@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +18,13 @@ import java.util.Optional;
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper) {
+    private final DirectorFilmRowMapper directorFilmRowMapper;
+    private final RowMapper<Film> filmWithLikesRowMapper;
+
+    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper, RowMapper<Film> filmWithLikesRowMapper) {
         super(jdbc, rowMapper);
+        this.directorFilmRowMapper = directorFilmRowMapper;
+        this.filmWithLikesRowMapper = filmWithLikesRowMapper;
     }
 
     public Film addFilm(Film film) {
@@ -36,17 +43,19 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public Film updateFilm(Film film) {
         String query = "update films set"
-                + " name = ?,"
-                + " description = ?,"
-                + " release_date = ?,"
-                + " duration = ?,"
-                + " mpa_id = ?";
+                       + " name = ?,"
+                       + " description = ?,"
+                       + " release_date = ?,"
+                       + " duration = ?,"
+                       + " mpa_id = ?"
+                       + " where id = ?";
         int result = update(query,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId());
+                film.getMpa().getId(),
+                film.getId());
 
         if (result == 0) {
             throw new EntityUpdateErrorException("Не удалось обновить пользователя");
@@ -189,6 +198,64 @@ public class FilmRepository extends BaseRepository<Film> {
                 order by q.counter DESC;
                 """;
         return getRecords(query, id, id, id);
+    }
+
+    public void deleteLinkedDirectors(int filmId) {
+        String query = "DELETE FROM film_directors WHERE film_id = ?";
+        delete(query, filmId);
+    }
+
+    public void linkDirectorsToFilm(int filmId, List<Integer> directorIds) {
+        if (directorIds.isEmpty()) return;
+        StringBuilder query = new StringBuilder("INSERT INTO film_directors (film_id, director_id) VALUES ");
+        for (int i = 0; i < directorIds.size(); i++) {
+            query.append("(?, ?)");
+            if (i < directorIds.size() - 1) {
+                query.append(", ");
+            }
+        }
+        Object[] params = new Object[directorIds.size() * 2];
+        for (int i = 0; i < directorIds.size(); i++) {
+            params[i * 2] = filmId;
+            params[i * 2 + 1] = directorIds.get(i);
+        }
+        jdbc.update(query.toString(), params);
+    }
+
+    private static final String BASE_FILM_DIRECTOR_QUERY = """
+    SELECT f.id AS film_id, f.name, f.description, f.release_date, f.duration,
+           f.mpa_id, m.name AS mpa_name,
+           COALESCE(lc.like_count, 0) AS like_count
+    FROM films AS f
+    INNER JOIN mpa AS m ON f.mpa_id = m.id
+    INNER JOIN film_directors AS fd ON f.id = fd.film_id
+    LEFT JOIN (
+        SELECT film_id, COUNT(user_id) AS like_count
+        FROM likes
+        GROUP BY film_id
+    ) AS lc ON f.id = lc.film_id
+    WHERE fd.director_id = ?
+    """;
+
+    private static final String ORDER_BY_YEAR = " ORDER BY f.release_date ASC";
+    private static final String ORDER_BY_LIKES = " ORDER BY like_count DESC";
+
+    public List<Film> getDirectorFilmsSortedByYear(int directorId) {
+        String query = BASE_FILM_DIRECTOR_QUERY + ORDER_BY_YEAR;
+        return jdbc.query(query, filmWithLikesRowMapper, directorId);
+    }
+
+    public List<Film> getDirectorFilmsSortedByLikes(int directorId) {
+        String query = BASE_FILM_DIRECTOR_QUERY + ORDER_BY_LIKES;
+        return jdbc.query(query, filmWithLikesRowMapper, directorId);
+    }
+
+    public List<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
+        if ("year".equalsIgnoreCase(sortBy)) {
+            return getDirectorFilmsSortedByYear(directorId);
+        } else {
+            return getDirectorFilmsSortedByLikes(directorId);
+        }
     }
 
     public List<Film> getCommonFilms(int userId, int friendId) {

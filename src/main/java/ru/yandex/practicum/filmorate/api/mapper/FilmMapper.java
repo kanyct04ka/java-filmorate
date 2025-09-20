@@ -21,6 +21,7 @@ public class FilmMapper {
                 .build();
 
         film.getGenres().addAll(filmRequest.getGenres());
+        film.getDirectors().addAll(filmRequest.getDirectors());
         return film;
     }
 
@@ -35,6 +36,7 @@ public class FilmMapper {
                 .build();
 
         film.getGenres().addAll(filmRequest.getGenres());
+        film.getDirectors().addAll(filmRequest.getDirectors());
         return film;
     }
 
@@ -49,7 +51,7 @@ public class FilmMapper {
                 .build();
 
         dto.getGenres().addAll(film.getGenres());
-
+        dto.getDirectors().addAll(film.getDirectors());
         return dto;
     }
 }

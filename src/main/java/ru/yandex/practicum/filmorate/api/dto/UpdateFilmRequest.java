@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import lombok.Data;
 
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.serializator.DurationSerializator;
@@ -36,4 +37,6 @@ public class UpdateFilmRequest {
     private Mpa mpa;
 
     private final Set<Genre> genres = new HashSet<>();
+
+    private final Set<Director> directors = new HashSet<>();
 }
