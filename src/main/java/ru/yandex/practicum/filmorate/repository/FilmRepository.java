@@ -225,11 +225,11 @@ public class FilmRepository extends BaseRepository<Film> {
 
         String orderClause;
         if ("year".equalsIgnoreCase(sortBy)) {
-            orderClause = " ORDER BY f.release_date ASC";
+            orderClause = " ORDER BY f.release_date";
         } else if ("likes".equalsIgnoreCase(sortBy)) {
             orderClause = " ORDER BY like_count DESC";
         } else {
-            orderClause = " ORDER BY f.release_date ASC";
+            orderClause = " ORDER BY f.release_date";
         }
         String fullQuery = baseQuery + orderClause;
         return jdbc.query(fullQuery, filmWithLikesRowMapper, directorId);
