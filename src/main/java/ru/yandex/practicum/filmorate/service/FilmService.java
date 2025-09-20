@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import ru.yandex.practicum.filmorate.api.dto.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateFilmRequest;
@@ -127,6 +128,7 @@ public class FilmService {
         }
 
         log.info("Фильм {} добавлен с ид={}", film.getName(), film.getId());
+
         return FilmMapper.mapToFilmDto(film);
     }
 
@@ -137,12 +139,12 @@ public class FilmService {
         }
 
         if (filmRequest.getReleaseDate() != null
-            && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+                && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
 
         if (filmRequest.getDuration() != null
-            && filmRequest.getDuration().toSeconds() <= 0) {
+                && filmRequest.getDuration().toSeconds() <= 0) {
             logValidationError("Продолжительность фильма должна быть положительным числом");
         }
         List<Integer> directorIds = filmRequest.getDirectors().stream()
@@ -207,8 +209,15 @@ public class FilmService {
         filmRepository.removeLike(filmId, userId);
     }
 
-    public List<FilmDTO> getTopLikedFilms(int quantity) {
-        return filmRepository.getTopLikedFilms(quantity)
+    public List<FilmDTO> getMostPopular(Integer count, Integer genreId, Integer year) {
+        return filmRepository.getMostPopular(count, genreId, year)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public List<FilmDTO> getRecommendations(int id) {
+        return filmRepository.getRecommendations(id)
                 .stream()
                 .map(FilmMapper::mapToFilmDto)
                 .toList();

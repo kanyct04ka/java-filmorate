@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,18 +31,18 @@ public class FilmRepository extends BaseRepository<Film> {
                 film.getReleaseDate(),
                 film.getDuration().toSeconds(),
                 film.getMpa().getId()
-        ).intValue();
+                ).intValue();
         film.setId(id);
         return film;
     }
 
     public Film updateFilm(Film film) {
         String query = "update films set"
-                       + " name = ?,"
-                       + " description = ?,"
-                       + " release_date = ?,"
-                       + " duration = ?,"
-                       + " mpa_id = ?";
+                + " name = ?,"
+                + " description = ?,"
+                + " release_date = ?,"
+                + " duration = ?,"
+                + " mpa_id = ?";
         int result = update(query,
                 film.getName(),
                 film.getDescription(),
@@ -60,16 +58,16 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getAllFilms() {
         String query = "select f.*, m.name as mpa_name"
-                       + " from films f"
-                       + " inner join mpa m on f.mpa_id = m.id";
+                + " from films f"
+                + " inner join mpa m on f.mpa_id = m.id";
         return getRecords(query);
     }
 
     public Optional<Film> getFilmById(int id) {
         String query = "select f.*, m.name as mpa_name"
-                       + " from films f"
-                       + " inner join mpa m on f.mpa_id = m.id"
-                       + " where f.id = ?";
+                + " from films f"
+                + " inner join mpa m on f.mpa_id = m.id"
+                + " where f.id = ?";
         return getRecord(query, id);
     }
 
@@ -99,17 +97,89 @@ public class FilmRepository extends BaseRepository<Film> {
         jdbc.update(query, filmId, userId);
     }
 
-    public List<Film> getTopLikedFilms(int count) {
-        String query = "select f.*, m.name as mpa_name"
-                       + " from films f"
-                       + " left join mpa m on f.mpa_id = m.id"
-                       + " inner join (select film_id, count(user_id) as counter"
-                       + " from likes"
-                       + " group by film_id"
-                       + " order by count(user_id) desc"
-                       + " limit ?) q on q.film_id = f.id"
-                       + " order by q.counter desc";
-        return getRecords(query, count);
+    public List<Film> getMostPopular(Integer count, Integer genreId, Integer year) {
+        String onlyPopularQuery = """
+                select f.*, coalesce(q.like_count, 0) AS counter, m.name as mpa_name
+                from films f
+                left join mpa m on f.mpa_id = m.id
+                left join (
+                    select film_id, count(user_id) as like_count
+                    from likes
+                    group by film_id
+                ) q on q.film_id = f.id
+                order by counter desc
+                limit ?
+                """;
+        String baseQuery = """
+                select f.*, coalesce(q.like_count, 0) AS counter, m.name AS mpa_name
+                from films f
+                left join mpa m ON f.mpa_id = m.id
+                left join film_genres fg ON f.id = fg.film_id
+                left join genres g ON fg.genre_id = g.id
+                left join (
+                    select film_id, count(user_id) AS like_count
+                    from likes
+                    group by film_id
+                    ) q ON q.film_id = f.id
+                """;
+        String onlyGenreQuery = baseQuery + """
+                where fg.genre_id = ?
+                order by counter DESC
+                limit ?
+                """;
+        String onlyYearQuery = baseQuery + """
+                where EXTRACT(YEAR FROM f.release_date) = ?
+                order by counter DESC
+                limit ?
+                """;
+        String genreYearQuery = baseQuery + """
+                where fg.genre_id = ?
+                    AND EXTRACT(YEAR FROM f.release_date) = ?
+                order by counter DESC
+                limit ?
+                """;
+        if (year == null && genreId == null) {
+            return getRecords(onlyPopularQuery, count);
+        } else if (genreId == null) {
+            return getRecords(onlyYearQuery, year, count);
+        } else if (year == null) {
+            return getRecords(onlyGenreQuery, genreId, count);
+        }
+        return getRecords(genreYearQuery, genreId, year, count);
+    }
+
+    public List<Film> getRecommendations(int id) {
+        String query = """
+                select f.*, m.name AS mpa_name
+                from films f
+                left join mpa m ON f.mpa_id = m.id
+                inner join (
+                    select l.film_id, count(l.user_id) AS counter
+                    from likes l
+                    where l.film_id IN (
+                    select distinct l2.film_id
+                    from likes l2
+                    where l2.user_id IN (
+                        select l3.user_id
+                        from likes l1
+                        join likes l3 ON l1.film_id = l3.film_id
+                        where l1.user_id = ?
+                        AND l3.user_id <> ?
+                        group by l3.user_id
+                        order by count(*) DESC
+                        limit 5
+                        )
+                    AND l2.film_id NOT IN (
+                        select film_id from likes where user_id = ?
+                        )
+                    limit 20
+                    )
+                    group by l.film_id
+                    order by counter DESC
+                ) q ON q.film_id = f.id
+                order by q.counter DESC;
+                """;
+        return getRecords(query, id, id, id);
     }
 
     public void deleteLinkedDirectors(int filmId) {
