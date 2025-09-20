@@ -225,7 +225,7 @@ public class FilmRepository extends BaseRepository<Film> {
 
         String orderBy;
         if ("year".equalsIgnoreCase(sortBy)) {
-            orderBy = "ORDER BY f.release_date ASC";
+            orderBy = "ORDER BY EXTRACT(YEAR FROM f.release_date) ASC";
         } else if (sortBy == null || "likes".equalsIgnoreCase(sortBy)) {
             orderBy = "ORDER BY like_count DESC";
         } else {
