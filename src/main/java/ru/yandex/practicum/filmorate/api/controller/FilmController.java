@@ -104,4 +104,14 @@ public class FilmController {
         return filmService.getMostPopular(count, genreId, year);
     }
 
+    @GetMapping("/common")
+    public List<FilmDTO> getCommonFilms(
+            @RequestParam
+            @Positive(message = "userId должен быть целым числом больше 0")
+            int userId,
+            @RequestParam
+            @Positive(message = "friendId должен быть целым числом больше 0")
+            int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }

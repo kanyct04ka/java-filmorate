@@ -190,4 +190,26 @@ public class FilmRepository extends BaseRepository<Film> {
                 """;
         return getRecords(query, id, id, id);
     }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String query = "SELECT f.*, m.name AS mpa_name, c.like_count " +
+                       "FROM films f " +
+                       "JOIN mpa m ON f.mpa_id = m.id " +
+                       "JOIN (SELECT film_id, COUNT(user_id) AS like_count " +
+                       "      FROM likes " +
+                       "      GROUP BY film_id) c ON c.film_id = f.id " +
+                       "WHERE f.id IN (" +
+                       "    SELECT l1.film_id " +
+                       "    FROM likes l1 " +
+                       "    WHERE l1.user_id = ? " +
+                       "    AND l1.film_id IN (" +
+                       "        SELECT l2.film_id " +
+                       "        FROM likes l2 " +
+                       "        WHERE l2.user_id = ?" +
+                       "    )" +
+                       ") " +
+                       "ORDER BY c.like_count DESC";
+
+        return getRecords(query, userId, friendId);
+    }
 }
