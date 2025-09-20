@@ -9,21 +9,21 @@ import lombok.Data;
 @Data
 public class UpdateReviewRequest {
     @Positive
-    private int reviewId;
+    private final int reviewId;
 
     @Positive
-    private int filmId;
+    private final int filmId;
 
     @Positive
-    private int userId;
+    private final int userId;
 
     @NotBlank
     @Size(max = 500)
-    private String content;
+    private final String content;
 
     @NotNull()
-    private Boolean isPositive;
+    private final Boolean isPositive;
 
     @NotNull
-    private int useful;
+    private final int useful;
 }

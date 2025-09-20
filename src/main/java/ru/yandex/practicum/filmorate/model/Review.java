@@ -7,8 +7,8 @@ import lombok.Data;
 @Builder
 public class Review {
     private int reviewId;
-    private int filmId;
-    private int userId;
+    private final int filmId;
+    private final int userId;
     private String content;
     private Boolean isPositive;
     private int useful;

@@ -7,14 +7,14 @@ import lombok.Data;
 
 @Data
 public class CreateReviewRequest {
-    private int filmId;
+    private final int filmId;
 
-    private int userId;
+    private final int userId;
 
     @NotBlank
     @Size(max = 500)
-    private String content;
+    private final String content;
 
     @NotNull
-    private Boolean isPositive;
+    private final Boolean isPositive;
 }
