@@ -76,12 +76,25 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    public User getUserById(int id) {
+    public UserDTO getUserById(int id) {
+        Optional<User> user = userRepository.getUserById(id);
+        if (user.isEmpty()) {
+            throw new NotFoundIssueException("Ошибка при получении пользователя из базы");
+        }
+        return UserMapper.mapToUserDto(user.get());
+    }
+
+    public void deleteUser(int id) {
+        log.info("Запрос на удаление пользователя с id = {}", id);
+
         Optional<User> user = userRepository.getUserById(id);
         if (user.isEmpty()) {
             throw new InternalErrorException("Ошибка при получении пользователя из базы");
         }
-        return user.get();
+
+        userRepository.deleteUser(id);
+
+        log.info("Пользователь с id = {} успешно удален", id);
     }
 
     private void logValidationError(String message) {

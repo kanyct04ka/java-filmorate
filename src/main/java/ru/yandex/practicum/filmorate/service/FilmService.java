@@ -55,7 +55,7 @@ public class FilmService {
     public FilmDTO getFilm(int id) {
         Optional<Film> film = filmRepository.getFilmById(id);
         if (film.isEmpty()) {
-            throw new InternalErrorException("Ошибка получения фильма");
+            throw new NotFoundIssueException("Ошибка получения фильма");
         }
 
         return FilmMapper.mapToFilmDto(film.get());
@@ -128,6 +128,19 @@ public class FilmService {
 
         log.info("Фильм с ид={} обновлен", film.getId());
         return FilmMapper.mapToFilmDto(film);
+    }
+
+    public void deleteFilm(int id) {
+        log.info("Запрос на удаление фильма с id = {}", id);
+
+        Optional<Film> film = filmRepository.getFilmById(id);
+        if (film.isEmpty()) {
+            throw new InternalErrorException("Ошибка получения фильма");
+        }
+
+        filmRepository.deleteFilm(id);
+
+        log.info("Фильм с id = {} успешно удален", id);
     }
 
     public void addLike(int filmId, int userId) {

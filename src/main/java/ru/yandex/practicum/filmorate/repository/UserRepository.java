@@ -62,4 +62,15 @@ public class UserRepository extends BaseRepository<User> {
 
         return getUserById(user.getId()).get();
     }
+
+    public void deleteUser(int id) {
+        String queryFriends1 = "delete from user_friends where user_id = ?";
+        delete(queryFriends1, id);
+
+        String queryFriends2 = "delete from user_friends where friend_id = ?";
+        delete(queryFriends2, id);
+
+        String queryUserS = "delete from users where id = ?";
+        delete(queryUserS, id);
+    }
 }

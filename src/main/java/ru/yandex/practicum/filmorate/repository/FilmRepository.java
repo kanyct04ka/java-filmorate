@@ -53,6 +53,17 @@ public class FilmRepository extends BaseRepository<Film> {
         return film;
     }
 
+    public void deleteFilm(int id) {
+        String queryLikes = "delete from likes where film_id = ?";
+        jdbc.update(queryLikes, id);
+
+        String queryGenres = "delete from film_genres where film_id = ?";
+        jdbc.update(queryGenres, id);
+
+        String queryFilms = "delete from films where id = ?";
+        jdbc.update(queryFilms, id);
+    }
+
     public List<Film> getAllFilms() {
         String query = "select f.*, m.name as mpa_name"
                 + " from films f"
@@ -95,15 +106,13 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public List<Film> getTopLikedFilms(int count) {
-        String query = "select f.*, m.name as mpa_name"
-                + " from films f"
-                + " left join mpa m on f.mpa_id = m.id"
-                + " inner join (select film_id, count(user_id) as counter"
-                    + " from likes"
-                    + " group by film_id"
-                    + " order by count(user_id) desc"
-                    + " limit ?) q on q.film_id = f.id"
-                    + " order by q.counter desc";
+        String query = "select f.*, m.name as mpa_name, count(l.user_id) as counter " +
+                "from films f " +
+                "left join mpa m on f.mpa_id = m.id " +
+                "left join likes l on l.film_id = f.id " +
+                "group by f.id, m.name " +
+                "order by counter desc " +
+                "limit ?";
         return getRecords(query, count);
     }
 }
