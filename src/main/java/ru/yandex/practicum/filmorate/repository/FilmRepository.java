@@ -1,12 +1,14 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,8 +18,13 @@ import java.util.Optional;
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
-    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper) {
+    private final DirectorFilmRowMapper directorFilmRowMapper;
+    private final RowMapper<Film> filmWithLikesRowMapper;
+
+    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper, RowMapper<Film> filmWithLikesRowMapper) {
         super(jdbc, rowMapper);
+        this.directorFilmRowMapper = directorFilmRowMapper;
+        this.filmWithLikesRowMapper = filmWithLikesRowMapper;
     }
 
     public Film addFilm(Film film) {
@@ -36,17 +43,19 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public Film updateFilm(Film film) {
         String query = "update films set"
-                + " name = ?,"
-                + " description = ?,"
-                + " release_date = ?,"
-                + " duration = ?,"
-                + " mpa_id = ?";
+                       + " name = ?,"
+                       + " description = ?,"
+                       + " release_date = ?,"
+                       + " duration = ?,"
+                       + " mpa_id = ?"
+                       + " where id = ?";
         int result = update(query,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId());
+                film.getMpa().getId(),
+                film.getId());
 
         if (result == 0) {
             throw new EntityUpdateErrorException("Не удалось обновить пользователя");
