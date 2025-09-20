@@ -54,6 +54,14 @@ public class FilmController {
     }
 
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        filmService.deleteFilm(id);
+    }
 
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(

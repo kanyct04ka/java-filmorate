@@ -54,6 +54,17 @@ public class FilmRepository extends BaseRepository<Film> {
         return film;
     }
 
+    public void deleteFilm(int id) {
+        String queryLikes = "delete from likes where film_id = ?";
+        jdbc.update(queryLikes, id);
+
+        String queryGenres = "delete from film_genres where film_id = ?";
+        jdbc.update(queryGenres, id);
+
+        String queryFilms = "delete from films where id = ?";
+        jdbc.update(queryFilms, id);
+    }
+
     public List<Film> getAllFilms() {
         String query = "select f.*, m.name as mpa_name"
                 + " from films f"
