@@ -123,10 +123,8 @@ public class ReviewRepository extends BaseRepository<Review> {
 
         String updateUseful;
         if (isPositive) {
-            //дизлайк -> лайк
             updateUseful = "update reviews set useful = useful + 2 where review_id = ?";
         } else {
-            //лайк -> дизлайк
             updateUseful = "update reviews set useful = useful - 2 where review_id = ?";
         }
         update(updateUseful, reviewId);
