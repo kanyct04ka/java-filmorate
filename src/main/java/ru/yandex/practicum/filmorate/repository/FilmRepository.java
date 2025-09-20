@@ -208,30 +208,39 @@ public class FilmRepository extends BaseRepository<Film> {
         jdbc.update(query.toString(), params);
     }
 
-    public List<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
-        String baseQuery = """
-        SELECT f.*, m.name AS mpa_name,
-               COALESCE(l.like_count, 0) AS like_count
-        FROM films f
-        INNER JOIN mpa m ON f.mpa_id = m.id
-        INNER JOIN film_directors fd ON f.id = fd.film_id
-        LEFT JOIN (
-            SELECT film_id, COUNT(user_id) AS like_count
-            FROM likes
-            GROUP BY film_id
-        ) l ON f.id = l.film_id
-        WHERE fd.director_id = ?
-        """;
+    private static final String BASE_FILM_DIRECTOR_QUERY = """
+    SELECT f.id AS film_id, f.name, f.description, f.release_date, f.duration,
+           f.mpa_id, m.name AS mpa_name,
+           COALESCE(lc.like_count, 0) AS like_count
+    FROM films AS f
+    INNER JOIN mpa AS m ON f.mpa_id = m.id
+    INNER JOIN film_directors AS fd ON f.id = fd.film_id
+    LEFT JOIN (
+        SELECT film_id, COUNT(user_id) AS like_count
+        FROM likes
+        GROUP BY film_id
+    ) AS lc ON f.id = lc.film_id
+    WHERE fd.director_id = ?
+    """;
 
-        String orderClause;
+    private static final String ORDER_BY_YEAR = " ORDER BY f.release_date ASC";
+    private static final String ORDER_BY_LIKES = " ORDER BY like_count DESC";
+
+    public List<Film> getDirectorFilmsSortedByYear(int directorId) {
+        String query = BASE_FILM_DIRECTOR_QUERY + ORDER_BY_YEAR;
+        return jdbc.query(query, filmWithLikesRowMapper, directorId);
+    }
+
+    public List<Film> getDirectorFilmsSortedByLikes(int directorId) {
+        String query = BASE_FILM_DIRECTOR_QUERY + ORDER_BY_LIKES;
+        return jdbc.query(query, filmWithLikesRowMapper, directorId);
+    }
+
+    public List<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
         if ("year".equalsIgnoreCase(sortBy)) {
-            orderClause = " ORDER BY f.release_date";
-        } else if ("likes".equalsIgnoreCase(sortBy)) {
-            orderClause = " ORDER BY like_count DESC";
+            return getDirectorFilmsSortedByYear(directorId);
         } else {
-            orderClause = " ORDER BY f.release_date";
+            return getDirectorFilmsSortedByLikes(directorId);
         }
-        String fullQuery = baseQuery + orderClause;
-        return jdbc.query(fullQuery, filmWithLikesRowMapper, directorId);
     }
 }

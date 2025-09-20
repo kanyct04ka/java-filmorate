@@ -234,13 +234,19 @@ public class FilmService {
     }
 
     public List<FilmDTO> getDirectorFilms(int directorId, String sortBy) {
-        Optional<Director> directorOpt = directorRepository.getDirectorById(directorId);
-        if (directorOpt.isEmpty()) {
-            log.error("Режиссер с ID {} не найден при попытке получить его фильмы", directorId);
+        if (directorRepository.getDirectorById(directorId).isEmpty()) {
+            log.error("Режиссер с ID {} не найден", directorId);
             throw new NotFoundIssueException("Режиссер не найден");
         }
 
-        List<Film> films = filmRepository.getDirectorFilmsSorted(directorId, sortBy);
+        List<Film> films;
+        if ("year".equalsIgnoreCase(sortBy)) {
+            films = filmRepository.getDirectorFilmsSortedByYear(directorId);
+        } else if ("likes".equalsIgnoreCase(sortBy)) {
+            films = filmRepository.getDirectorFilmsSortedByLikes(directorId);
+        } else {
+            films = filmRepository.getDirectorFilmsSortedByLikes(directorId);
+        }
 
         for (Film film : films) {
             List<Genre> filmGenres = genreRepository.getGenresByFilmId(film.getId());
