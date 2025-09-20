@@ -229,7 +229,7 @@ public class FilmRepository extends BaseRepository<Film> {
         } else if (sortBy == null || "likes".equalsIgnoreCase(sortBy)) {
             orderByClause = " ORDER BY like_count DESC";
         } else {
-            throw new IllegalArgumentException("Неверный параметр сортировки: " + sortBy);
+            orderByClause = " ORDER BY f.release_date ASC";
         }
         String fullQuery = baseQuery + orderByClause;
 
