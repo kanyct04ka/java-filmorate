@@ -101,7 +101,7 @@ public class FilmController {
             @PathVariable
             @Positive(message = "ID режиссера должен быть положительным числом")
             int directorId,
-            @RequestParam(defaultValue = "id") String sortBy) {
+            @RequestParam(defaultValue = "likes") String sortBy) {
         return filmService.getDirectorFilms(directorId, sortBy);
     }
 
