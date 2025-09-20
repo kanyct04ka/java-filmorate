@@ -46,13 +46,15 @@ public class FilmRepository extends BaseRepository<Film> {
                 + " description = ?,"
                 + " release_date = ?,"
                 + " duration = ?,"
-                + " mpa_id = ?";
+                + " mpa_id = ?"
+                + " where id = ?";
         int result = update(query,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId());
+                film.getMpa().getId(),
+                film.getId());
 
         if (result == 0) {
             throw new EntityUpdateErrorException("Не удалось обновить пользователя");
