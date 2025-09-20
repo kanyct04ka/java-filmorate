@@ -18,10 +18,12 @@ import java.util.Optional;
 public class FilmRepository extends BaseRepository<Film> {
 
     private final DirectorFilmRowMapper directorFilmRowMapper;
+    private final RowMapper<Film> filmWithLikesRowMapper;
 
-    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper) {
+    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper, RowMapper<Film> filmWithLikesRowMapper) {
         super(jdbc, rowMapper);
         this.directorFilmRowMapper = directorFilmRowMapper;
+        this.filmWithLikesRowMapper = filmWithLikesRowMapper;
     }
 
     public Film addFilm(Film film) {
@@ -207,28 +209,27 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public List<Film> getDirectorFilmsSorted(int directorId, String sortBy) {
-        String orderByClause;
-        if ("year".equalsIgnoreCase(sortBy)) {
-            orderByClause = "f.release_date ASC";
-        } else if ("likes".equalsIgnoreCase(sortBy)) {
-            orderByClause = "like_count DESC";
+        String baseQuery = """
+        SELECT f.*, m.name AS mpa_name,
+               COALESCE(l.like_count, 0) AS like_count
+        FROM films f
+        INNER JOIN mpa m ON f.mpa_id = m.id
+        INNER JOIN film_directors fd ON f.id = fd.film_id
+        LEFT JOIN (
+            SELECT film_id, COUNT(user_id) AS like_count
+            FROM likes
+            GROUP BY film_id
+        ) l ON f.id = l.film_id
+        WHERE fd.director_id = ?
+        """;
+
+        String orderBy;
+        if ("year".equals(sortBy)) {
+            orderBy = "ORDER BY f.release_date ASC";
         } else {
-            orderByClause = "f.id ASC";
+            orderBy = "ORDER BY like_count DESC, f.release_date ASC";
         }
 
-        String query = "SELECT f.*, m.name AS mpa_name, " +
-                       "COALESCE(l.like_count, 0) AS like_count " +
-                       "FROM films f " +
-                       "LEFT JOIN mpa m ON f.mpa_id = m.id " +
-                       "LEFT JOIN ( " +
-                       "    SELECT film_id, COUNT(user_id) AS like_count " +
-                       "    FROM likes " +
-                       "    GROUP BY film_id " +
-                       ") l ON f.id = l.film_id " +
-                       "INNER JOIN film_directors fd ON f.id = fd.film_id " +
-                       "WHERE fd.director_id = ? " +
-                       "ORDER BY " + orderByClause;
-
-        return jdbc.query(query, directorFilmRowMapper, directorId);
+        return jdbc.query(baseQuery + orderBy, filmWithLikesRowMapper, directorId);
     }
 }

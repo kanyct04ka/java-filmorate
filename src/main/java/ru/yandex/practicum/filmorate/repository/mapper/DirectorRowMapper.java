@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository.mapper;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Director;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 public class DirectorRowMapper implements RowMapper<Director> {
 
     @Override
+    @Bean
     public Director mapRow(ResultSet rs, int rowNum) throws SQLException {
         Director director = new Director();
         director.setId(rs.getInt("id"));
