@@ -224,12 +224,14 @@ public class FilmRepository extends BaseRepository<Film> {
         """;
 
         String orderBy;
-        if ("year".equals(sortBy)) {
+        if ("year".equalsIgnoreCase(sortBy)) {
             orderBy = "ORDER BY f.release_date ASC";
-        } else {
+        } else if (sortBy == null || "likes".equalsIgnoreCase(sortBy)) {
             orderBy = "ORDER BY like_count DESC, f.release_date ASC";
+        } else {
+            throw new IllegalArgumentException("Неверный параметр сортировки: " + sortBy);
         }
 
-        return jdbc.query(baseQuery + orderBy, filmWithLikesRowMapper, directorId);
+        return jdbc.query(baseQuery + " " + orderBy, filmWithLikesRowMapper, directorId);
     }
 }
