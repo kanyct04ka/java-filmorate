@@ -228,7 +228,7 @@ public class FilmRepository extends BaseRepository<Film> {
         if ("year".equalsIgnoreCase(sortBy)) {
             fullQuery.append(" ORDER BY f.release_date ASC");
         } else if (sortBy == null || "likes".equalsIgnoreCase(sortBy)) {
-            fullQuery.append(" ORDER BY like_count DESC");
+            fullQuery.append(" ORDER BY lc.like_count DESC, f.id ASC");
         } else {
             throw new IllegalArgumentException("Неверный параметр сортировки: " + sortBy);
         }
