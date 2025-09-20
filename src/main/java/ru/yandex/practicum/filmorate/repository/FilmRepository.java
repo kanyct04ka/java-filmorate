@@ -97,48 +97,52 @@ public class FilmRepository extends BaseRepository<Film> {
 
     public List<Film> getMostPopular(Integer count, Integer genreId, Integer year) {
         String onlyPopularQuery = """
-                select f.*, m.name as mpa_name
+                select f.*, coalesce(q.like_count, 0) AS counter, m.name as mpa_name
                 from films f
                 left join mpa m on f.mpa_id = m.id
-                inner join (select film_id, count(user_id) as counter
-                from likes
-                group by film_id
-                order by count(user_id) desc
-                limit ?) q on q.film_id = f.id
-                order by counter desc""";
+                left join (
+                    select film_id, count(user_id) as like_count
+                    from likes
+                    group by film_id
+                ) q on q.film_id = f.id
+                order by counter desc
+                limit ?
+                """;
         String baseQuery = """
-                select f.*, m.name AS mpa_name
+                select f.*, coalesce(q.like_count, 0) AS counter, m.name AS mpa_name
                 from films f
                 left join mpa m ON f.mpa_id = m.id
                 left join film_genres fg ON f.id = fg.film_id
                 left join genres g ON fg.genre_id = g.id
-                inner join (
-                    select film_id, count(user_id) AS counter
+                left join (
+                    select film_id, count(user_id) AS like_count
                     from likes
                     group by film_id
-                    order by counter DESC
-                    limit ?) q ON q.film_id = f.id
+                    ) q ON q.film_id = f.id
                 """;
         String onlyGenreQuery = baseQuery + """
                 where fg.genre_id = ?
-                order by q.counter DESC
+                order by counter DESC
+                limit ?
                 """;
         String onlyYearQuery = baseQuery + """
                 where EXTRACT(YEAR FROM f.release_date) = ?
-                order by q.counter DESC
+                order by counter DESC
+                limit ?
                 """;
         String genreYearQuery = baseQuery + """
                 where fg.genre_id = ?
                     AND EXTRACT(YEAR FROM f.release_date) = ?
-                order by q.counter DESC
+                order by counter DESC
+                limit ?
                 """;
         if (year == null && genreId == null) {
             return getRecords(onlyPopularQuery, count);
         } else if (genreId == null) {
-            return getRecords(onlyYearQuery, count, year);
+            return getRecords(onlyYearQuery, year, count);
         } else if (year == null) {
-            return getRecords(onlyGenreQuery, count, genreId);
+            return getRecords(onlyGenreQuery, genreId, count);
         }
-        return getRecords(genreYearQuery, count, genreId, year);
+        return getRecords(genreYearQuery, genreId, year, count);
     }
 }
