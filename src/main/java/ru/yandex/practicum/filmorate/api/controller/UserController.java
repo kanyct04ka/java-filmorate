@@ -10,9 +10,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
+import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -28,11 +30,13 @@ public class UserController {
 //    private final UserStorage userStorage;
     private final UserService userService;
     private final FriendshipService friendshipService;
+    private final FilmService filmService;
 
     @Autowired
-    public UserController(UserService userService, FriendshipService friendshipService) {
+    public UserController(UserService userService, FriendshipService friendshipService, FilmService filmService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.filmService = filmService;
     }
 
     @PostMapping
@@ -94,5 +98,14 @@ public class UserController {
             int friendId
     ) {
         return friendshipService.getCommonFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDTO> getRecommendations(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        return filmService.getRecommendations(id);
     }
 }

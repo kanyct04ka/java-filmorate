@@ -79,16 +79,21 @@ public class FilmController {
         filmService.removeLike(filmId, userId);
     }
 
-    @GetMapping("/popular")
-    public List<FilmDTO> getPopularFilms(
-            @RequestParam
-            @Positive(message = "Количество должно быть целым числом больше 0")
-            int count) {
-        if (count == 0) {
-            count = 10;
-        }
 
-        return filmService.getTopLikedFilms(count);
+    @GetMapping("/popular")
+    public List<FilmDTO> getMostPopular(
+            @RequestParam(required = false, defaultValue = "1000")
+            @Positive(message = "count должно быть целым числом больше 0")
+            Integer count,
+            @RequestParam(required = false)
+            @Positive(message = "genreId должно быть целым числом больше 0")
+            Integer genreId,
+            @RequestParam(required = false)
+            @Positive(message = "year должно быть целым числом больше 0")
+            Integer year
+    ) {
+        log.info("сработал метод getMostPopular");
+        return filmService.getMostPopular(count, genreId, year);
     }
 
     @GetMapping("/common")
