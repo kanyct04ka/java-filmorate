@@ -58,7 +58,7 @@ public class FilmService {
     public FilmDTO getFilm(int id) {
         Optional<Film> film = filmRepository.getFilmById(id);
         if (film.isEmpty()) {
-            throw new InternalErrorException("Ошибка получения фильма");
+            throw new NotFoundIssueException("Ошибка получения фильма");
         }
 
         return FilmMapper.mapToFilmDto(film.get());
@@ -134,17 +134,15 @@ public class FilmService {
 
     public FilmDTO updateFilm(UpdateFilmRequest filmRequest) {
 
-        if (filmRepository.getFilmById(filmRequest.getId()).isEmpty()) {
-            logNotFoundError("Фильм не найден");
-        }
+        checkFilmExists(filmRequest.getId());
 
         if (filmRequest.getReleaseDate() != null
-                && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
+            && filmRequest.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             logValidationError("Дата релиза не может быть раньше 28 декабря 1895 года");
         }
 
         if (filmRequest.getDuration() != null
-                && filmRequest.getDuration().toSeconds() <= 0) {
+            && filmRequest.getDuration().toSeconds() <= 0) {
             logValidationError("Продолжительность фильма должна быть положительным числом");
         }
         List<Integer> directorIds = filmRequest.getDirectors().stream()
@@ -185,52 +183,54 @@ public class FilmService {
         return FilmMapper.mapToFilmDto(film);
     }
 
-    public void addLike(int filmId, int userId) {
-        if (filmRepository.getFilmById(filmId).isEmpty()) {
-            logNotFoundError("Фильм не найден");
+    public void deleteFilm(int id) {
+        log.info("Запрос на удаление фильма с id = {}", id);
+
+        Optional<Film> film = filmRepository.getFilmById(id);
+        if (film.isEmpty()) {
+            throw new InternalErrorException("Ошибка получения фильма");
         }
 
-        if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Юзер не найден");
-        }
+        filmRepository.deleteFilm(id);
+
+        log.info("Фильм с id = {} успешно удален", id);
+    }
+
+    public void addLike(int filmId, int userId) {
+        checkFilmExists(filmId);
+        checkUserExists(userId);
 
         filmRepository.addLike(filmId, userId);
     }
 
     public void removeLike(int filmId, int userId) {
-        if (filmRepository.getFilmById(filmId).isEmpty()) {
-            logNotFoundError("Фильм не найден");
-        }
-
-        if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Юзер не найден");
-        }
+        checkFilmExists(filmId);
+        checkUserExists(userId);
 
         filmRepository.removeLike(filmId, userId);
     }
 
-    public List<FilmDTO> getMostPopular(Integer count, Integer genreId, Integer year) {
-        return filmRepository.getMostPopular(count, genreId, year)
-                .stream()
+    public List<FilmDTO> getCommonFilms(int userId, int friendId) {
+        checkUserExists(userId);
+        checkUserExists(friendId);
+
+        List<Film> commonFilms = filmRepository.getCommonFilms(userId, friendId);
+
+        return commonFilms.stream()
                 .map(FilmMapper::mapToFilmDto)
-                .toList();
+                .collect(Collectors.toList());
     }
 
-    public List<FilmDTO> getRecommendations(int id) {
-        return filmRepository.getRecommendations(id)
-                .stream()
-                .map(FilmMapper::mapToFilmDto)
-                .toList();
+    private void checkUserExists(int userId) {
+        if (userRepository.getUserById(userId).isEmpty()) {
+            logNotFoundError("Пользователь с ID " + userId + " не найден");
+        }
     }
 
-    private void logValidationError(String message) {
-        log.error(message);
-        throw new ValidationException(message);
-    }
-
-    private void logNotFoundError(String message) {
-        log.error(message);
-        throw new NotFoundIssueException(message);
+    private void checkFilmExists(int filmId) {
+        if (filmRepository.getFilmById(filmId).isEmpty()) {
+            logNotFoundError("Фильм с ID " + filmId + " не найден");
+        }
     }
 
     public List<FilmDTO> getDirectorFilms(int directorId, String sortBy) {
@@ -261,5 +261,29 @@ public class FilmService {
         return films.stream()
                 .map(FilmMapper::mapToFilmDto)
                 .collect(Collectors.toList());
+    }
+
+    public List<FilmDTO> getMostPopular(Integer count, Integer genreId, Integer year) {
+        return filmRepository.getMostPopular(count, genreId, year)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    public List<FilmDTO> getRecommendations(int id) {
+        return filmRepository.getRecommendations(id)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
+    }
+
+    private void logValidationError(String message) {
+        log.error(message);
+        throw new ValidationException(message);
+    }
+
+    private void logNotFoundError(String message) {
+        log.error(message);
+        throw new NotFoundIssueException(message);
     }
 }

@@ -54,6 +54,34 @@ public class FilmController {
     }
 
 
+    @DeleteMapping("/{id}")
+    public void deleteFilm(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        filmService.deleteFilm(id);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public List<FilmDTO> getDirectorFilms(
+            @PathVariable
+            @Positive(message = "ID режиссера должен быть положительным числом")
+            int directorId,
+            @RequestParam(required = false) String sortBy) {
+        return filmService.getDirectorFilms(directorId, sortBy);
+    }
+
+    @GetMapping("/common")
+    public List<FilmDTO> getCommonFilms(
+            @RequestParam
+            @Positive(message = "userId должен быть целым числом больше 0")
+            int userId,
+            @RequestParam
+            @Positive(message = "friendId должен быть целым числом больше 0")
+            int friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 
     @PutMapping("/{filmId}/like/{userId}")
     public void addLike(
@@ -95,14 +123,4 @@ public class FilmController {
         log.info("сработал метод getMostPopular");
         return filmService.getMostPopular(count, genreId, year);
     }
-
-    @GetMapping("/director/{directorId}")
-    public List<FilmDTO> getDirectorFilms(
-            @PathVariable
-            @Positive(message = "ID режиссера должен быть положительным числом")
-            int directorId,
-            @RequestParam(required = false) String sortBy) {
-        return filmService.getDirectorFilms(directorId, sortBy);
-    }
-
 }

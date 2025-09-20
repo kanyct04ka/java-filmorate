@@ -1,41 +1,35 @@
 package ru.yandex.practicum.filmorate.repository;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-
 import ru.yandex.practicum.filmorate.exception.EntityUpdateErrorException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
 
 
+@Slf4j
 @Repository
 public class FilmRepository extends BaseRepository<Film> {
 
-    private final DirectorFilmRowMapper directorFilmRowMapper;
-    private final RowMapper<Film> filmWithLikesRowMapper;
-
-    public FilmRepository(JdbcTemplate jdbc, @Qualifier("filmRowMapper") RowMapper<Film> rowMapper, DirectorFilmRowMapper directorFilmRowMapper, RowMapper<Film> filmWithLikesRowMapper) {
+    public FilmRepository(JdbcTemplate jdbc, RowMapper<Film> rowMapper) {
         super(jdbc, rowMapper);
-        this.directorFilmRowMapper = directorFilmRowMapper;
-        this.filmWithLikesRowMapper = filmWithLikesRowMapper;
     }
 
     public Film addFilm(Film film) {
         String query = "insert into films (name, description, release_date, duration, mpa_id)"
-                       + " values (?, ?, ?, ?, ?)";
+                + " values (?, ?, ?, ?, ?)";
         int id = insert(query,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration().toSeconds(),
                 film.getMpa().getId()
-                ).intValue();
+        ).intValue();
         film.setId(id);
         return film;
     }
@@ -46,20 +40,29 @@ public class FilmRepository extends BaseRepository<Film> {
                 + " description = ?,"
                 + " release_date = ?,"
                 + " duration = ?,"
-                + " mpa_id = ?"
-                + " where id = ?";
+                + " mpa_id = ?";
         int result = update(query,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa().getId(),
-                film.getId());
+                film.getMpa().getId());
 
         if (result == 0) {
             throw new EntityUpdateErrorException("Не удалось обновить пользователя");
         }
         return film;
+    }
+
+    public void deleteFilm(int id) {
+        String queryLikes = "delete from likes where film_id = ?";
+        jdbc.update(queryLikes, id);
+
+        String queryGenres = "delete from film_genres where film_id = ?";
+        jdbc.update(queryGenres, id);
+
+        String queryFilms = "delete from films where id = ?";
+        jdbc.update(queryFilms, id);
     }
 
     public List<Film> getAllFilms() {
@@ -244,5 +247,27 @@ public class FilmRepository extends BaseRepository<Film> {
         } else {
             return getDirectorFilmsSortedByLikes(directorId);
         }
+    }
+
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String query = "SELECT f.*, m.name AS mpa_name, c.like_count " +
+                       "FROM films f " +
+                       "JOIN mpa m ON f.mpa_id = m.id " +
+                       "JOIN (SELECT film_id, COUNT(user_id) AS like_count " +
+                       "      FROM likes " +
+                       "      GROUP BY film_id) c ON c.film_id = f.id " +
+                       "WHERE f.id IN (" +
+                       "    SELECT l1.film_id " +
+                       "    FROM likes l1 " +
+                       "    WHERE l1.user_id = ? " +
+                       "    AND l1.film_id IN (" +
+                       "        SELECT l2.film_id " +
+                       "        FROM likes l2 " +
+                       "        WHERE l2.user_id = ?" +
+                       "    )" +
+                       ") " +
+                       "ORDER BY c.like_count DESC";
+
+        return getRecords(query, userId, friendId);
     }
 }
