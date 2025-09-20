@@ -156,4 +156,38 @@ public class FilmRepository extends BaseRepository<Film> {
         }
         return getRecords(genreYearQuery, genreId, year, count);
     }
+
+    public List<Film> getRecommendations(int id) {
+        String query = """
+                select f.*, m.name AS mpa_name
+                from films f
+                left join mpa m ON f.mpa_id = m.id
+                inner join (
+                    select l.film_id, count(l.user_id) AS counter
+                    from likes l
+                    where l.film_id IN (
+                    select distinct l2.film_id
+                    from likes l2
+                    where l2.user_id IN (
+                        select l3.user_id
+                        from likes l1
+                        join likes l3 ON l1.film_id = l3.film_id
+                        where l1.user_id = ?
+                        AND l3.user_id <> ?
+                        group by l3.user_id
+                        order by count(*) DESC
+                        limit 5
+                        )
+                    AND l2.film_id NOT IN (
+                        select film_id from likes where user_id = ?
+                        )
+                    limit 20
+                    )
+                    group by l.film_id
+                    order by counter DESC
+                ) q ON q.film_id = f.id
+                order by q.counter DESC;
+                """;
+        return getRecords(query, id, id, id);
+    }
 }

@@ -10,7 +10,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
-import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 
