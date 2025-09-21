@@ -290,8 +290,8 @@ public class FilmRepository extends BaseRepository<Film> {
                 left join film_directors fd on f.id = fd.film_id
                 left join directors d on d.id = fd.director_id
                 """;
-        String filmCondition = "f.name like ?";
-        String directorCondition = "d.name like ?";
+        String filmCondition = "LOWER(f.name) like LOWER(?)";
+        String directorCondition = "LOWER(d.name) like LOWER(?)";
 
         if (fields.size() == 1 && fields.contains("title")) {
             query += (" WHERE " + filmCondition);
