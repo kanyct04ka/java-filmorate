@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.api.controller;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,8 +19,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 
 @Slf4j
