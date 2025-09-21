@@ -290,21 +290,25 @@ public class FilmRepository extends BaseRepository<Film> {
                 left join film_directors fd on f.id = fd.film_id
                 left join directors d on d.id = fd.director_id
                 """;
+        String order = " order by f.id desc";
         String filmCondition = "LOWER(f.name) like LOWER(?)";
         String directorCondition = "LOWER(d.name) like LOWER(?)";
 
         if (fields.size() == 1 && fields.contains("title")) {
             query += (" WHERE " + filmCondition);
+            query += order;
             return getRecords(query, "%" + phrase + "%");
         }
 
         if (fields.size() == 1 && fields.contains("director")) {
             query += (" WHERE " + directorCondition);
+            query += order;
             return getRecords(query, "%" + phrase + "%");
         }
 
         if (fields.contains("title") && fields.contains("director")) {
             query += (" WHERE " + filmCondition + " OR " + directorCondition);
+            query += order;
             return getRecords(query, "%" + phrase + "%", "%" + phrase + "%");
         }
 
