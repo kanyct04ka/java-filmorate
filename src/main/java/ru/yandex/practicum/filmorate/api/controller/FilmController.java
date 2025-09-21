@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.api.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,9 +14,14 @@ import ru.yandex.practicum.filmorate.api.dto.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateFilmRequest;
 
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -122,5 +129,30 @@ public class FilmController {
     ) {
         log.info("сработал метод getMostPopular");
         return filmService.getMostPopular(count, genreId, year);
+    }
+
+    @GetMapping("/search")
+    public List<FilmDTO> searchFilms(
+                @RequestParam
+                @NotBlank
+                String query,
+                @RequestParam
+                @NotBlank
+                String by
+    ) {
+        List<String> byFields = Arrays.stream(by.split(","))
+                .map(String::trim)
+                .map(s -> s.toLowerCase())
+                .filter(s -> !s.isBlank())
+                .toList();
+
+        if (byFields.isEmpty()) {
+            throw new ValidationException("Требуется указать минимум одно поле для поиска");
+        }
+        if (!byFields.contains("director") && !byFields.contains("title")) {
+            throw new ValidationException("Для поиска требуется указать поле director и/или title");
+        }
+
+        return filmService.searchFilms(query, new HashSet<>(byFields));
     }
 }

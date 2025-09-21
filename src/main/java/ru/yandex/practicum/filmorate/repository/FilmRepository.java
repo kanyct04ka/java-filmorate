@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.repository.mapper.DirectorFilmRowMapper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Slf4j
@@ -278,5 +279,35 @@ public class FilmRepository extends BaseRepository<Film> {
                        "ORDER BY c.like_count DESC";
 
         return getRecords(query, userId, friendId);
+    }
+
+    public List<Film> searchFilms(String phrase, Set<String> fields) {
+
+        String query = """
+                select f.*, m.name AS mpa_name
+                from films f
+                left join mpa m ON f.mpa_id = m.id
+                left join film_directors fd on f.id = fd.film_id
+                left join directors d on d.id = fd.director_id
+                """;
+        String filmCondition = "f.name like ?";
+        String directorCondition = "d.name like ?";
+
+        if (fields.size() == 1 && fields.contains("title")) {
+            query += (" WHERE " + filmCondition);
+            return getRecords(query, "%" + phrase + "%");
+        }
+
+        if (fields.size() == 1 && fields.contains("director")) {
+            query += (" WHERE " + directorCondition);
+            return getRecords(query, "%" + phrase + "%");
+        }
+
+        if (fields.contains("title") && fields.contains("director")) {
+            query += (" WHERE " + filmCondition + " OR " + directorCondition);
+            return getRecords(query, "%" + phrase + "%", "%" + phrase + "%");
+        }
+
+        return getRecords(query);
     }
 }

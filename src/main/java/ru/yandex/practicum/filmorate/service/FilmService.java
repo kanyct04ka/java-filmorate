@@ -18,10 +18,7 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.repository.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -285,5 +282,12 @@ public class FilmService {
     private void logNotFoundError(String message) {
         log.error(message);
         throw new NotFoundIssueException(message);
+    }
+
+    public List<FilmDTO> searchFilms(String query, Set<String> fields) {
+        return filmRepository.searchFilms(query, fields)
+                .stream()
+                .map(FilmMapper::mapToFilmDto)
+                .toList();
     }
 }

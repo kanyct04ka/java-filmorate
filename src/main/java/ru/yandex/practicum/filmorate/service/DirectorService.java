@@ -50,4 +50,8 @@ public class DirectorService {
             log.warn("Режиссер с ID {} не был удален (возможно, не существовал)", id);
         }
     }
+
+    public List<Director> getDirectorsForFilm(int id) {
+        return directorRepository.getDirectorsByFilmId(id);
+    }
 }
