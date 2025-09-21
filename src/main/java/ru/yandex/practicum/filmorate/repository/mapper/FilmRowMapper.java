@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.service.DirectorService;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.sql.ResultSet;
@@ -16,10 +17,12 @@ import java.time.Duration;
 public class FilmRowMapper implements RowMapper<Film> {
 
     private final GenreService genreService;
+    private final DirectorService directorService;
 
     @Autowired
-    public FilmRowMapper(GenreService genreService) {
+    public FilmRowMapper(GenreService genreService, DirectorService directorService) {
         this.genreService = genreService;
+        this.directorService = directorService;
     }
 
     @Override
@@ -37,6 +40,7 @@ public class FilmRowMapper implements RowMapper<Film> {
                 .build();
 
         film.getGenres().addAll(genreService.getFilmGenres(film.getId()));
+        film.getDirectors().addAll(directorService.getDirectorsForFilm(film.getId()));
         return film;
     }
 }
