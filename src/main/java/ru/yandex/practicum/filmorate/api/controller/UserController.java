@@ -10,9 +10,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
+import ru.yandex.practicum.filmorate.api.dto.EventDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -27,11 +29,16 @@ public class UserController {
 
     private final UserService userService;
     private final FriendshipService friendshipService;
+    private final EventService eventService;
 
     @Autowired
-    public UserController(UserService userService, FriendshipService friendshipService) {
+    public UserController(UserService userService,
+                          FriendshipService friendshipService,
+                          EventService eventService
+    ) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.eventService = eventService;
     }
 
     @PostMapping
@@ -110,5 +117,14 @@ public class UserController {
             int id
     ) {
         userService.deleteUser(id);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<EventDTO> getUserFeed(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        return eventService.getUserFeed(id);
     }
 }

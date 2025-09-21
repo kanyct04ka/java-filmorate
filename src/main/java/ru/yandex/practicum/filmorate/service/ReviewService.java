@@ -9,11 +9,15 @@ import ru.yandex.practicum.filmorate.api.dto.UpdateReviewRequest;
 import ru.yandex.practicum.filmorate.api.mapper.ReviewMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.EventOperation;
+import ru.yandex.practicum.filmorate.model.EventType;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 import ru.yandex.practicum.filmorate.repository.ReviewRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,12 +27,19 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
+    private final EventService eventService;
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, FilmRepository filmRepository) {
+    public ReviewService(ReviewRepository reviewRepository,
+                         UserRepository userRepository,
+                         FilmRepository filmRepository,
+                         EventService eventService
+    ) {
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.filmRepository = filmRepository;
+        this.eventService = eventService;
+
     }
 
     public List<ReviewDTO> getReviews(int filmId,  int count) {
@@ -83,6 +94,16 @@ public class ReviewService {
         Review review = reviewRepository.addReview(ReviewMapper.mapToReview(reviewRequest));
 
         log.info("Отзыв с id = {} успешно создан", review.getReviewId());
+
+        eventService.createEvent(Event.builder()
+                .user(userRepository.getUserById(reviewRequest.getUserId()).orElseThrow())
+                .entityId(review.getReviewId())
+                .type(EventType.REVIEW)
+                .operation(EventOperation.ADD)
+                .timestamp(Instant.now())
+                .build()
+        );
+
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -105,6 +126,16 @@ public class ReviewService {
         Review review = reviewRepository.updateReview(ReviewMapper.mapToReview(reviewRequest));
 
         log.info("Отзыв с id = {} успешно обновлен", review.getReviewId());
+
+        eventService.createEvent(Event.builder()
+                .user(userRepository.getUserById(reviewRequest.getUserId()).orElseThrow())
+                .entityId(review.getReviewId())
+                .type(EventType.REVIEW)
+                .operation(EventOperation.UPDATE)
+                .timestamp(Instant.now())
+                .build()
+        );
+
         return ReviewMapper.mapToReviewDto(review);
     }
 
@@ -117,6 +148,16 @@ public class ReviewService {
         reviewRepository.deleteReview(id);
 
         log.info("Фильм с id = {} успешно удален", review.getReviewId());
+
+        eventService.createEvent(Event.builder()
+                .user(userRepository.getUserById(review.getUserId()).orElseThrow())
+                .entityId(review.getReviewId())
+                .type(EventType.REVIEW)
+                .operation(EventOperation.REMOVE)
+                .timestamp(Instant.now())
+                .build()
+        );
+
         return ReviewMapper.mapToReviewDto(review);
     }
 
