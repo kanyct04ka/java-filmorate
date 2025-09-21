@@ -11,12 +11,10 @@ import ru.yandex.practicum.filmorate.api.mapper.FilmMapper;
 import ru.yandex.practicum.filmorate.exception.InternalErrorException;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.repository.*;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,19 +31,22 @@ public class FilmService {
     private final MpaRepository mpaRepository;
     private final UserRepository userRepository;
     private final DirectorRepository directorRepository;
+    private final EventService eventService;
 
     @Autowired
     public FilmService(FilmRepository filmRepository,
                        GenreRepository genreRepository,
                        MpaRepository mpaRepository,
                        UserRepository userRepository,
-                       DirectorRepository directorRepository
+                       DirectorRepository directorRepository,
+                       EventService eventService
     ) {
         this.filmRepository = filmRepository;
         this.genreRepository = genreRepository;
         this.mpaRepository = mpaRepository;
         this.userRepository = userRepository;
         this.directorRepository = directorRepository;
+        this.eventService = eventService;
     }
 
     public List<FilmDTO> getAllFilms() {
@@ -201,6 +202,15 @@ public class FilmService {
         checkUserExists(userId);
 
         filmRepository.addLike(filmId, userId);
+
+        eventService.createEvent(Event.builder()
+                .user(userRepository.getUserById(userId).orElseThrow())
+                .entityId(filmId)
+                .type(EventType.LIKE)
+                .operation(EventOperation.ADD)
+                .timestamp(Instant.now())
+                .build()
+        );
     }
 
     public void removeLike(int filmId, int userId) {
@@ -208,6 +218,14 @@ public class FilmService {
         checkUserExists(userId);
 
         filmRepository.removeLike(filmId, userId);
+        eventService.createEvent(Event.builder()
+                .user(userRepository.getUserById(userId).orElseThrow())
+                .entityId(filmId)
+                .type(EventType.LIKE)
+                .operation(EventOperation.REMOVE)
+                .timestamp(Instant.now())
+                .build()
+        );
     }
 
     public List<FilmDTO> getCommonFilms(int userId, int friendId) {

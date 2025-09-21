@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,8 +13,7 @@ import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 import ru.yandex.practicum.filmorate.api.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Friendship;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.repository.FriendshipRepository;
 import ru.yandex.practicum.filmorate.repository.UserRepository;
 
@@ -22,11 +22,16 @@ import ru.yandex.practicum.filmorate.repository.UserRepository;
 public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final UserRepository userRepository;
+    private final EventService eventService;
 
     @Autowired
-    public FriendshipService(FriendshipRepository friendshipRepository, UserRepository userRepository) {
+    public FriendshipService(FriendshipRepository friendshipRepository,
+                             UserRepository userRepository,
+                             EventService eventService
+    ) {
         this.friendshipRepository = friendshipRepository;
         this.userRepository = userRepository;
+        this.eventService = eventService;
     }
 
     public void addFriend(int userId, int friendId) {
@@ -50,6 +55,15 @@ public class FriendshipService {
                 .friend(friend.get())
                 .isFriend(false)
                 .build());
+
+        eventService.createEvent(Event.builder()
+                .user(user.get())
+                .entityId(friendId)
+                .type(EventType.FRIEND)
+                .operation(EventOperation.ADD)
+                .timestamp(Instant.now())
+                .build()
+        );
     }
 
     public List<UserDTO> getUserFriends(int userId) {
@@ -81,6 +95,15 @@ public class FriendshipService {
         }
 
         friendshipRepository.deleteFriendship(friendship.get());
+
+        eventService.createEvent(Event.builder()
+                .user(user.get())
+                .entityId(friendId)
+                .type(EventType.FRIEND)
+                .operation(EventOperation.REMOVE)
+                .timestamp(Instant.now())
+                .build()
+        );
     }
 
     public List<UserDTO> getCommonFriends(int userOneId, int userTwoId) {
