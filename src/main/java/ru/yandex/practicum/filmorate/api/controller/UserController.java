@@ -9,12 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
-import ru.yandex.practicum.filmorate.api.dto.EventDTO;
-import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
-import ru.yandex.practicum.filmorate.api.dto.UserDTO;
+import ru.yandex.practicum.filmorate.api.dto.*;
 
 import ru.yandex.practicum.filmorate.service.EventService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -30,14 +28,17 @@ public class UserController {
     private final UserService userService;
     private final FriendshipService friendshipService;
     private final EventService eventService;
+    private final FilmService filmService;
 
     @Autowired
     public UserController(UserService userService,
                           FriendshipService friendshipService,
+                          FilmService filmService,
                           EventService eventService
     ) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.filmService = filmService;
         this.eventService = eventService;
     }
 
@@ -126,5 +127,14 @@ public class UserController {
             int id
     ) {
         return eventService.getUserFeed(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDTO> getRecommendations(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        return filmService.getRecommendations(id);
     }
 }
