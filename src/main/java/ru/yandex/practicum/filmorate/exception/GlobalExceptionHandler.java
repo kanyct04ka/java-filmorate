@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -71,4 +72,15 @@ public class GlobalExceptionHandler {
                 "errorMessage", "Произошла непредвиденная ошибка"
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleConstraintViolation(final ConstraintViolationException e) {
+        log.debug("Ошибка 400: {}", e.getMessage());
+        return Map.of(
+                "error", "Bad request",
+                "errorMessage", e.getMessage()
+        );
+    }
+
 }
