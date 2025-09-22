@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.api.dto.CreateFilmRequest;
 import ru.yandex.practicum.filmorate.api.dto.FilmDTO;
 import ru.yandex.practicum.filmorate.api.dto.UpdateFilmRequest;
 import ru.yandex.practicum.filmorate.api.mapper.FilmMapper;
-import ru.yandex.practicum.filmorate.exception.InternalErrorException;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.*;

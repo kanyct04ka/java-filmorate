@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
 import ru.yandex.practicum.filmorate.api.dto.UserDTO;
 import ru.yandex.practicum.filmorate.api.mapper.UserMapper;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistsException;
-import ru.yandex.practicum.filmorate.exception.InternalErrorException;
 import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
