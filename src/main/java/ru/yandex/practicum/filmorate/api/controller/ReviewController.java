@@ -26,8 +26,9 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<ReviewDTO> getReviews(@RequestParam(defaultValue = "0") @Positive(message = "id отзыва должно быть положительным") int filmId,
-                                      @RequestParam(defaultValue = "10") @Positive(message = "id отзыва должно быть положительным") int count) {
+    public List<ReviewDTO> getReviews(@RequestParam(defaultValue = "0") int filmId,
+                                      @RequestParam(defaultValue = "10") @Positive(message = "count должно быть положительным") int count) {
+        log.debug("Получение отзывов: filmId={}, count={}", filmId, count);
         return reviewService.getReviews(filmId, count);
     }
 
@@ -65,13 +66,13 @@ public class ReviewController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLikeReview(@PathVariable @Positive(message = "id отзыва должен быть больше 0") int id,
-                              @PathVariable @Positive(message = "id пользователя должен быть больше 0") int userId) {
+                                 @PathVariable @Positive(message = "id пользователя должен быть больше 0") int userId) {
         reviewService.delLikeReview(id, userId);
     }
 
     @DeleteMapping("/{id}/dislike/{userId}")
     public void deleteDislikeReview(@PathVariable @Positive(message = "id отзыва должен быть больше 0") int id,
-                                 @PathVariable @Positive(message = "id пользователя должен быть больше 0") int userId) {
+                                    @PathVariable @Positive(message = "id пользователя должен быть больше 0") int userId) {
         reviewService.delDislikeReview(id, userId);
     }
 }

@@ -54,7 +54,7 @@ public class UserService {
         }
 
         if (!userRequest.getEmail().equals(existingUser.get().getEmail())
-                && userRepository.getUserByEmail(userRequest.getEmail()).isPresent()) {
+            && userRepository.getUserByEmail(userRequest.getEmail()).isPresent()) {
             throw new EntityAlreadyExistsException("Попытка присвоить email, который уже используется другим пользователем");
         }
 
@@ -89,7 +89,7 @@ public class UserService {
 
         Optional<User> user = userRepository.getUserById(id);
         if (user.isEmpty()) {
-            throw new InternalErrorException("Ошибка при получении пользователя из базы");
+            logNotFoundError("Пользователь с id = " + id + " не найден");
         }
 
         userRepository.deleteUser(id);

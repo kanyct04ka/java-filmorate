@@ -186,7 +186,7 @@ public class FilmService {
 
         Optional<Film> film = filmRepository.getFilmById(id);
         if (film.isEmpty()) {
-            throw new InternalErrorException("Ошибка получения фильма");
+            logNotFoundError("Фильм с id = " + id + " не найден");
         }
 
         filmRepository.deleteFilm(id);
