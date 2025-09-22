@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Repository
 public class ReviewRepository extends BaseRepository<Review> {
 
@@ -102,6 +104,7 @@ public class ReviewRepository extends BaseRepository<Review> {
                 update(updateUsefulQuery, reviewId);
             }
         } catch (EmptyResultDataAccessException e) {
+            log.debug("Попытка удаления лайка: реакция пользователя {} на отзыв {} не найдена.", userId, reviewId);
         }
     }
 
@@ -136,6 +139,10 @@ public class ReviewRepository extends BaseRepository<Review> {
                 update(updateUsefulQuery, reviewId);
             }
         } catch (EmptyResultDataAccessException e) {
+            String insertQuery = "insert into review_likes (review_id, user_id, is_positive) values (?, ?, false)";
+            update(insertQuery, reviewId, userId);
+            String updateUsefulQuery = "update reviews set useful = useful - 1 where review_id = ?";
+            update(updateUsefulQuery, reviewId);
         }
     }
 
