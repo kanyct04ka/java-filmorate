@@ -133,15 +133,17 @@ public class FilmRepository extends BaseRepository<Film> {
                 select f.*, coalesce(q.like_count, 0) AS counter, m.name AS mpa_name
                 from films f
                 left join mpa m ON f.mpa_id = m.id
-                left join film_genres fg ON f.id = fg.film_id
-                left join genres g ON fg.genre_id = g.id
                 left join (
                     select film_id, count(user_id) AS like_count
                     from likes
                     group by film_id
                     ) q ON q.film_id = f.id
                 """;
-        String onlyGenreQuery = baseQuery + """
+        String genreJoins = """
+                left join film_genres fg ON f.id = fg.film_id
+                left join genres g ON fg.genre_id = g.id
+                """;
+        String onlyGenreQuery = baseQuery + genreJoins + """
                 where fg.genre_id = ?
                 order by counter DESC
                 limit ?
@@ -151,7 +153,7 @@ public class FilmRepository extends BaseRepository<Film> {
                 order by counter DESC
                 limit ?
                 """;
-        String genreYearQuery = baseQuery + """
+        String genreYearQuery = baseQuery + genreJoins + """
                 where fg.genre_id = ?
                     AND EXTRACT(YEAR FROM f.release_date) = ?
                 order by counter DESC
