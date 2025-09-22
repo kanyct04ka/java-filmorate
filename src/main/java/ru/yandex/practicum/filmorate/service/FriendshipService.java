@@ -35,20 +35,20 @@ public class FriendshipService {
     }
 
     public void addFriend(int userId, int friendId) {
+        if (userRepository.getUserById(userId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + userId + " не найден");
+        }
+
+        if (userRepository.getUserById(friendId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + friendId + " не найден");
+        }
+
+        if (userId == friendId) {
+            throw new ValidationException("Нельзя добавить самого себя в друзья");
+        }
 
         Optional<User> user = userRepository.getUserById(userId);
-        if (user.isEmpty()) {
-            logNotFoundError("Попытка добавить друга для не существующего юзера");
-        }
-
         Optional<User> friend = userRepository.getUserById(friendId);
-        if (friend.isEmpty()) {
-            logNotFoundError("Попытка добавить в качестве друга не существующего юзера");
-        }
-
-        if (user.get().getId() == friend.get().getId()) {
-            logValidationError("Попытка добавить в качестве друга себя");
-        }
 
         friendshipRepository.saveFriendship(Friendship.builder()
                 .user(user.get())
@@ -68,7 +68,7 @@ public class FriendshipService {
 
     public List<UserDTO> getUserFriends(int userId) {
         if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Юзера с таким ид не найдено");
+            throw new NotFoundIssueException("Пользователь с ID " + userId + " не найден");
         }
 
         return friendshipRepository.getFriendshipsByUserId(userId)
@@ -79,15 +79,16 @@ public class FriendshipService {
     }
 
     public void removeFriendship(int userId, int friendId) {
-        Optional<User> user = userRepository.getUserById(userId);
-        if (user.isEmpty()) {
-            logNotFoundError("Попытка удалить друга для не существующего юзера");
+        if (userRepository.getUserById(userId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + userId + " не найден");
         }
 
-        Optional<User> friend = userRepository.getUserById(friendId);
-        if (friend.isEmpty()) {
-            logNotFoundError("Попытка удалить в качестве друга не существующего юзера");
+        if (userRepository.getUserById(friendId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + friendId + " не найден");
         }
+
+        Optional<User> user = userRepository.getUserById(userId);
+        Optional<User> friend = userRepository.getUserById(friendId);
 
         Optional<Friendship> friendship = friendshipRepository.getFriendship(userId, friendId);
         if (friendship.isEmpty()) {
@@ -107,15 +108,16 @@ public class FriendshipService {
     }
 
     public List<UserDTO> getCommonFriends(int userOneId, int userTwoId) {
-        Optional<User> userOne = userRepository.getUserById(userOneId);
-        if (userOne.isEmpty()) {
-            logNotFoundError("Юзера с ид " + userOneId + " не существует");
+        if (userRepository.getUserById(userOneId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + userOneId + " не найден");
         }
 
-        Optional<User> userTwo = userRepository.getUserById(userTwoId);
-        if (userTwo.isEmpty()) {
-            logNotFoundError("Юзера с ид " + userTwoId + " не существует");
+        if (userRepository.getUserById(userTwoId).isEmpty()) {
+            throw new NotFoundIssueException("Пользователь с ID " + userTwoId + " не найден");
         }
+
+        Optional<User> userOne = userRepository.getUserById(userOneId);
+        Optional<User> userTwo = userRepository.getUserById(userTwoId);
 
         List<User> userTwoFriendsId = friendshipRepository.getFriendshipsByUserId(userTwoId)
                 .stream()
@@ -128,15 +130,5 @@ public class FriendshipService {
                 .filter(userTwoFriendsId::contains)
                 .map(UserMapper::mapToUserDto)
                 .toList();
-    }
-
-    private void logValidationError(String message) {
-        log.error(message);
-        throw new ValidationException(message);
-    }
-
-    private void logNotFoundError(String message) {
-        log.error(message);
-        throw new NotFoundIssueException(message);
     }
 }

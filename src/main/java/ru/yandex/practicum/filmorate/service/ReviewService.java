@@ -43,19 +43,24 @@ public class ReviewService {
     }
 
     public List<ReviewDTO> getReviews(int filmId,  int count) {
-        log.info("Запрос на получения всех отзывов");
+        log.info("Запрос на получения всех отзывов: filmId={}, count={}", filmId, count);
 
         List<ReviewDTO> dtoList;
-        if (filmId == 0) {
-            dtoList = reviewRepository.getAllReviews(count)
-                    .stream()
-                    .map(ReviewMapper::mapToReviewDto)
-                    .toList();
-        } else {
-            dtoList = reviewRepository.getAllReviewsByFilmId(filmId, count)
-                    .stream()
-                    .map(ReviewMapper::mapToReviewDto)
-                    .toList();
+        try {
+            if (filmId == 0) {
+                dtoList = reviewRepository.getAllReviews(count)
+                        .stream()
+                        .map(ReviewMapper::mapToReviewDto)
+                        .toList();
+            } else {
+                dtoList = reviewRepository.getAllReviewsByFilmId(filmId, count)
+                        .stream()
+                        .map(ReviewMapper::mapToReviewDto)
+                        .toList();
+            }
+        } catch (Exception e) {
+            log.error("Ошибка при получении отзывов: filmId={}, count={}", filmId, count, e);
+            throw new RuntimeException("Ошибка при получении отзывов", e);
         }
 
         if (dtoList.isEmpty()) {
