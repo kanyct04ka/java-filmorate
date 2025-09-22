@@ -18,12 +18,12 @@ public class ReviewRepository extends BaseRepository<Review> {
     }
 
     public List<Review> getAllReviews(int count) {
-        String query = "select * from reviews order by useful desc limit ?";
+        String query = "select * from reviews order by useful desc, review_id asc limit ?";
         return getRecords(query, count);
     }
 
     public List<Review> getAllReviewsByFilmId(int filmId, int count) {
-        String query = "select * from reviews where film_id = ? order by useful desc limit ?";
+        String query = "select * from reviews where film_id = ? order by useful desc, review_id asc limit ?";
         return getRecords(query, filmId, count);
     }
 
@@ -34,7 +34,7 @@ public class ReviewRepository extends BaseRepository<Review> {
 
     public Review addReview(Review review) {
         String query = "insert into reviews (content, is_positive, user_id, film_id, useful) " +
-                "values (?, ?, ?, ?, ?)";
+                       "values (?, ?, ?, ?, ?)";
         int id = insert(query,
                 review.getContent(),
                 review.getIsPositive(),
@@ -48,21 +48,19 @@ public class ReviewRepository extends BaseRepository<Review> {
 
     public Review updateReview(Review review) {
         String query = "update reviews set " +
-                "content = ?, " +
-                "is_positive = ?, " +
-                "useful = ? " +
-                "where review_id = ?";
+                       "content = ?, " +
+                       "is_positive = ? " +
+                       "where review_id = ?";
         int result = update(query,
                 review.getContent(),
                 review.getIsPositive(),
-                review.getUseful(),
                 review.getReviewId()
         );
 
         if (result == 0) {
             throw new EntityUpdateErrorException("Не удалось обновить отзыв");
         }
-        return review;
+        return getReviewById(review.getReviewId()).orElseThrow();
     }
 
     public void deleteReview(int id) {
@@ -77,42 +75,70 @@ public class ReviewRepository extends BaseRepository<Review> {
     }
 
     public void addLikeReview(int reviewId, int userId) {
-        String insertSql = "insert into review_likes (review_id, user_id, is_positive) values (?, ?, true)";
-        int result = update(insertSql, reviewId, userId);
+        String checkExistsQuery = "select is_positive from review_likes where review_id = ? and user_id = ?";
+        try {
+            Boolean currentReaction = jdbc.queryForObject(checkExistsQuery, Boolean.class, reviewId, userId);
 
-        if (result > 0) {
-            String updateUseful = "update reviews set useful = useful + 1 where review_id = ?";
-            update(updateUseful, reviewId);
+            if (!currentReaction) {
+                String updateReactionQuery = "update review_likes set is_positive = true where review_id = ? and user_id = ?";
+                update(updateReactionQuery, reviewId, userId);
+                String updateUsefulQuery = "update reviews set useful = useful + 2 where review_id = ?";
+                update(updateUsefulQuery, reviewId);
+            }
+        } catch (EmptyResultDataAccessException e) {
+            String insertQuery = "insert into review_likes (review_id, user_id, is_positive) values (?, ?, true)";
+            update(insertQuery, reviewId, userId);
+            String updateUsefulQuery = "update reviews set useful = useful + 1 where review_id = ?";
+            update(updateUsefulQuery, reviewId);
         }
     }
 
     public void delLikeReview(int reviewId, int userId) {
-        String query = "delete from review_likes where review_id = ? and user_id = ? and is_positive = true";
-        int result = update(query, reviewId, userId);
+        String checkExistsQuery = "select is_positive from review_likes where review_id = ? and user_id = ?";
+        try {
+            Boolean currentReaction = jdbc.queryForObject(checkExistsQuery, Boolean.class, reviewId, userId);
 
-        if (result > 0) {
-            String updateUseful = "update reviews set useful = useful - 1 where review_id = ?";
-            update(updateUseful, reviewId);
+            if (currentReaction) {
+                String deleteReactionQuery = "delete from review_likes where review_id = ? and user_id = ?";
+                update(deleteReactionQuery, reviewId, userId);
+                String updateUsefulQuery = "update reviews set useful = useful - 1 where review_id = ?";
+                update(updateUsefulQuery, reviewId);
+            }
+        } catch (EmptyResultDataAccessException e) {
         }
     }
 
     public void addDislikeReview(int reviewId, int userId) {
-        String insertSql = "insert into review_likes (review_id, user_id, is_positive) values (?, ?, false)";
-        int result = update(insertSql, reviewId, userId);
+        String checkExistsQuery = "select is_positive from review_likes where review_id = ? and user_id = ?";
+        try {
+            Boolean currentReaction = jdbc.queryForObject(checkExistsQuery, Boolean.class, reviewId, userId);
 
-        if (result > 0) {
-            String updateUseful = "update reviews set useful = useful - 1 where review_id = ?";
-            update(updateUseful, reviewId);
+            if (currentReaction) {
+                String updateReactionQuery = "update review_likes set is_positive = false where review_id = ? and user_id = ?";
+                update(updateReactionQuery, reviewId, userId);
+                String updateUsefulQuery = "update reviews set useful = useful - 2 where review_id = ?";
+                update(updateUsefulQuery, reviewId);
+            }
+        } catch (EmptyResultDataAccessException e) {
+            String insertQuery = "insert into review_likes (review_id, user_id, is_positive) values (?, ?, false)";
+            update(insertQuery, reviewId, userId);
+            String updateUsefulQuery = "update reviews set useful = useful - 1 where review_id = ?";
+            update(updateUsefulQuery, reviewId);
         }
     }
 
     public void delDislikeReview(int reviewId, int userId) {
-        String query = "delete from review_likes where review_id = ? and user_id = ? and is_positive = false";
-        int result = update(query, reviewId, userId);
+        String checkExistsQuery = "select is_positive from review_likes where review_id = ? and user_id = ?";
+        try {
+            Boolean currentReaction = jdbc.queryForObject(checkExistsQuery, Boolean.class, reviewId, userId);
 
-        if (result > 0) {
-            String updateUseful = "update reviews set useful = useful + 1 where review_id = ?";
-            update(updateUseful, reviewId);
+            if (!currentReaction) {
+                String deleteReactionQuery = "delete from review_likes where review_id = ? and user_id = ?";
+                update(deleteReactionQuery, reviewId, userId);
+                String updateUsefulQuery = "update reviews set useful = useful + 1 where review_id = ?";
+                update(updateUsefulQuery, reviewId);
+            }
+        } catch (EmptyResultDataAccessException e) {
         }
     }
 
@@ -143,4 +169,3 @@ public class ReviewRepository extends BaseRepository<Review> {
         }
     }
 }
-
