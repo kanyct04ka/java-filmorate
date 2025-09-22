@@ -107,7 +107,7 @@ public class FilmRepository extends BaseRepository<Film> {
     }
 
     public void addLike(int filmId, int userId) {
-        String query = "insert into likes (film_id, user_id) values (?, ?) ";
+        String query = "MERGE INTO likes (film_id, user_id) KEY (film_id, user_id) VALUES (?, ?)";
         jdbc.update(query, filmId, userId);
     }
 
