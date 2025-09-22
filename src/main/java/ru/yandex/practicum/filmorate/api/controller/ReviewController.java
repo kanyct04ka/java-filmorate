@@ -26,8 +26,11 @@ public class ReviewController {
     }
 
     @GetMapping
-    public List<ReviewDTO> getReviews(@RequestParam(defaultValue = "0") @Positive(message = "id отзыва должно быть положительным") int filmId,
-                                      @RequestParam(defaultValue = "10") @Positive(message = "id отзыва должно быть положительным") int count) {
+    public List<ReviewDTO> getReviews(@RequestParam(defaultValue = "0")
+                                      int filmId,
+                                      @RequestParam(defaultValue = "10")
+                                      @Positive(message = "количество должно быть положительным")
+                                      int count) {
         return reviewService.getReviews(filmId, count);
     }
 
