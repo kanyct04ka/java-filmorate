@@ -125,13 +125,14 @@ public class ReviewService {
             throw new ValidationException("Id фильма и пользователя не может быть null");
         }
 
-        reviewRepository.getReviewById(reviewRequest.getReviewId())
-                .orElseThrow(() -> new NotFoundIssueException("Отзыв не найден"));
+        Optional<Review> optReview = reviewRepository.getReviewById(reviewRequest.getReviewId());
 
-        userRepository.getUserById(reviewRequest.getUserId())
+        optReview.orElseThrow(() -> new NotFoundIssueException("Отзыв не найден"));
+
+        userRepository.getUserById(optReview.get().getUserId())
                 .orElseThrow(() -> new NotFoundIssueException("Пользователь не найден"));
 
-        filmRepository.getFilmById(reviewRequest.getFilmId())
+        filmRepository.getFilmById(optReview.get().getFilmId())
                 .orElseThrow(() -> new NotFoundIssueException("Фильм не найден"));
 
         Review review = reviewRepository.updateReview(ReviewMapper.mapToReview(reviewRequest));
@@ -139,7 +140,7 @@ public class ReviewService {
         log.info("Отзыв с id = {} успешно обновлен", review.getReviewId());
 
         eventService.createEvent(Event.builder()
-                .user(userRepository.getUserById(reviewRequest.getUserId()).orElseThrow())
+                .user(userRepository.getUserById(review.getUserId()).orElseThrow())
                 .entityId(review.getReviewId())
                 .type(EventType.REVIEW)
                 .operation(EventOperation.UPDATE)
@@ -158,7 +159,7 @@ public class ReviewService {
 
         reviewRepository.deleteReview(id);
 
-        log.info("Фильм с id = {} успешно удален", review.getReviewId());
+        log.info("Отзыв с id = {} успешно удален", review.getReviewId());
 
         eventService.createEvent(Event.builder()
                 .user(userRepository.getUserById(review.getUserId()).orElseThrow())

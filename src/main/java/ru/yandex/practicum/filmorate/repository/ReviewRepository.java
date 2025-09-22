@@ -66,8 +66,6 @@ public class ReviewRepository extends BaseRepository<Review> {
     }
 
     public void deleteReview(int id) {
-        String delEvent = "delete from events where type = 'REVIEW' and entity_id = ?";
-        delete(delEvent, id);
 
         String delLikes = "delete from review_likes where review_id = ?";
         delete(delLikes, id);

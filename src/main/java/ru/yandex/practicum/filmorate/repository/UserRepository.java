@@ -72,6 +72,9 @@ public class UserRepository extends BaseRepository<User> {
         String queryEvents = "delete from events where user_id = ?";
         delete(queryEvents, id);
 
+        String queryEvents2 = "delete from events where type = 'REVIEW' and entity_id in (select id from reviews where user_id = ?)";
+        delete(queryEvents2, id);
+
         String queryFriends1 = "delete from user_friends where user_id = ?";
         delete(queryFriends1, id);
 
