@@ -169,7 +169,8 @@ public class FilmService {
         Film film = filmRepository.updateFilm(FilmMapper.mapToFilm(filmRequest));
         filmRepository.deleteLinkedGenres(film.getId());
         if (!filmRequest.getGenres().isEmpty()) {
-            filmRepository.linkGenresToFilm(film, new ArrayList<>(filmRequest.getGenres()));
+            Set<Genre> uniqueGenres = new LinkedHashSet<>(filmRequest.getGenres());
+            filmRepository.linkGenresToFilm(film, new ArrayList<>(uniqueGenres));
         }
         filmRepository.deleteLinkedDirectors(film.getId());
         if (!directorIds.isEmpty()) {
@@ -185,7 +186,7 @@ public class FilmService {
 
         Optional<Film> film = filmRepository.getFilmById(id);
         if (film.isEmpty()) {
-            logNotFoundError("Фильм с id = " + id + " не найден");
+            throw new NotFoundIssueException("Фильм с id = " + id + " не найден");
         }
 
         filmRepository.deleteFilm(id);
@@ -237,13 +238,13 @@ public class FilmService {
 
     private void checkUserExists(int userId) {
         if (userRepository.getUserById(userId).isEmpty()) {
-            logNotFoundError("Пользователь с ID " + userId + " не найден");
+            throw new NotFoundIssueException("Пользователь с ID " + userId + " не найден");
         }
     }
 
-    private void checkFilmExists(int filmId) {
+    void checkFilmExists(int filmId) {
         if (filmRepository.getFilmById(filmId).isEmpty()) {
-            logNotFoundError("Фильм с ID " + filmId + " не найден");
+            throw new NotFoundIssueException("Фильм с ID " + filmId + " не найден");
         }
     }
 

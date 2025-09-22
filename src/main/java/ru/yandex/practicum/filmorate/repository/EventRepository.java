@@ -17,7 +17,7 @@ public class EventRepository extends BaseRepository<Event> {
 
     public Event saveEvent(Event event) {
         String query = "insert into events (timestamp, type, operation, user_id, entity_id)"
-                + " values (?, ?, ?, ?, ?)";
+                       + " values (?, ?, ?, ?, ?)";
 
         long id = insert(query,
                 event.getTimestamp().toEpochMilli(),
@@ -32,7 +32,7 @@ public class EventRepository extends BaseRepository<Event> {
     }
 
     public List<Event> getEventsByUserId(int id) {
-        String query = "select * from events where user_id = ?";
+        String query = "select * from events where user_id = ? order by timestamp asc, id asc";
         return getRecords(query, id);
     }
 }

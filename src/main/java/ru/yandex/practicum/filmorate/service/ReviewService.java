@@ -28,22 +28,28 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final FilmRepository filmRepository;
     private final EventService eventService;
+    private final FilmService filmService;
 
     @Autowired
     public ReviewService(ReviewRepository reviewRepository,
                          UserRepository userRepository,
                          FilmRepository filmRepository,
-                         EventService eventService
+                         EventService eventService,
+                         FilmService filmService
     ) {
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.filmRepository = filmRepository;
         this.eventService = eventService;
-
+        this.filmService = filmService;
     }
 
     public List<ReviewDTO> getReviews(int filmId,  int count) {
         log.info("Запрос на получения всех отзывов: filmId={}, count={}", filmId, count);
+
+        if (filmId > 0) {
+            filmService.checkFilmExists(filmId);
+        }
 
         List<ReviewDTO> dtoList;
         try {
