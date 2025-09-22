@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.api.dto.EventDTO;
 import ru.yandex.practicum.filmorate.api.mapper.EventMapper;
+import ru.yandex.practicum.filmorate.exception.NotFoundIssueException;
 import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.repository.EventRepository;
 
@@ -32,6 +33,14 @@ public class EventService {
         return eventRepository.getEventsByUserId(userId)
                 .stream()
                 .map(EventMapper::mapToEventDTO)
-                .collect(Collectors.toList());
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        list -> {
+                            if (list.isEmpty()) {
+                                throw new NotFoundIssueException("Событий для пользователя не найдено");
+                            }
+                            return list;
+                        }
+                ));
     }
 }
