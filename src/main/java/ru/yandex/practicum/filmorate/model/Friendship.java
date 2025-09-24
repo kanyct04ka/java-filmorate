@@ -6,7 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class Friendship {
-    private int id;
     private final User user;
     private final User friend;
     private boolean isFriend;

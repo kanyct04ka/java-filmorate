@@ -16,18 +16,14 @@ public class FriendshipRepository extends BaseRepository<Friendship> {
         super(jdbc, rowMapper);
     }
 
-    public Friendship saveFriendship(Friendship friendship) {
+    public void saveFriendship(Friendship friendship) {
         String query = "insert into user_friends (user_id, friend_id, is_friend)"
                 + "values (?, ?, ?)";
-
-        int id = insert(query,
+        jdbc.update(query,
                 friendship.getUser().getId(),
                 friendship.getFriend().getId(),
                 friendship.getIsFriend()
-        ).intValue();
-
-        friendship.setId(id);
-        return friendship;
+        );
     }
 
     public List<Friendship> getFriendshipsByUserId(int id) {
@@ -54,7 +50,7 @@ public class FriendshipRepository extends BaseRepository<Friendship> {
     }
 
     public boolean deleteFriendship(Friendship friendship) {
-        String query = "delete from user_friends where id = ?";
-        return delete(query, friendship.getId());
+        String query = "delete from user_friends where user_id = ? and friend_id = ?";
+        return delete(query, friendship.getUser().getId(), friendship.getFriend().getId());
     }
 }
