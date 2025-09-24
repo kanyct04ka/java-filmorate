@@ -9,10 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import ru.yandex.practicum.filmorate.api.dto.CreateUserRequest;
-import ru.yandex.practicum.filmorate.api.dto.UpdateUserRequest;
-import ru.yandex.practicum.filmorate.api.dto.UserDTO;
+import ru.yandex.practicum.filmorate.api.dto.*;
 
+import ru.yandex.practicum.filmorate.service.EventService;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.FriendshipService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -25,14 +25,21 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
-//    private final UserStorage userStorage;
     private final UserService userService;
     private final FriendshipService friendshipService;
+    private final EventService eventService;
+    private final FilmService filmService;
 
     @Autowired
-    public UserController(UserService userService, FriendshipService friendshipService) {
+    public UserController(UserService userService,
+                          FriendshipService friendshipService,
+                          FilmService filmService,
+                          EventService eventService
+    ) {
         this.userService = userService;
         this.friendshipService = friendshipService;
+        this.filmService = filmService;
+        this.eventService = eventService;
     }
 
     @PostMapping
@@ -44,6 +51,14 @@ public class UserController {
     @GetMapping
     public List<UserDTO> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public UserDTO getFilm(
+            @PathVariable
+            @Positive(message = "id должен быть больше 0")
+            int id) {
+        return userService.getUserById(id);
     }
 
     @PutMapping
@@ -94,5 +109,32 @@ public class UserController {
             int friendId
     ) {
         return friendshipService.getCommonFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteUser(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        userService.deleteUser(id);
+    }
+
+    @GetMapping("/{id}/feed")
+    public List<EventDTO> getUserFeed(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        return eventService.getUserFeed(id);
+    }
+
+    @GetMapping("/{id}/recommendations")
+    public List<FilmDTO> getRecommendations(
+            @PathVariable
+            @Positive(message = "user_id должен быть целым числом больше 0")
+            int id
+    ) {
+        return filmService.getRecommendations(id);
     }
 }
